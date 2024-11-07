@@ -8,14 +8,12 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-
 const TicketDetails = ({ params }) => {
   const [ticket, setTicket] = useState(null);
-  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const ticketCode = params.id; // Access route parameter from props
+  const ticketCode = params.id;
 
   useEffect(() => {
     const fetchTicketDetails = async () => {
@@ -25,11 +23,12 @@ const TicketDetails = ({ params }) => {
         );
         if (!response.ok) throw new Error("Ticket not found");
         const data = await response.json();
-        setTicket(data);
-        // Fetch comments if you have a separate endpoint
-        const commentsResponse = await fetch(`http://localhost:8081/api/tickets/${ticketCode}/comments`);
-        const commentsData = await commentsResponse.json();
-        setComments(commentsData);
+
+        // Ensure ticket.comments is an array
+        setTicket({
+          ...data,
+          comments: data.comments || [], // Default to empty array if comments is undefined
+        });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -42,51 +41,49 @@ const TicketDetails = ({ params }) => {
     }
   }, [ticketCode]);
 
-useEffect(() => {
-  const fetchTicketDetails = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:8081/api/tickets/${ticketCode}/comments`
-      );
-      if (!response.ok) throw new Error("Comments not found");
-      const commentsData = await response.json();
-      setComments(commentsData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (ticketCode) {
-    fetchTicketDetails();
-  }
-}, [ticketCode]);
-
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
+
     if (!newComment.trim()) return;
 
     try {
-      // Add comment to the backend
-      await fetch(`http://localhost:8081/api/tickets/${ticketCode}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newComment }),
-      });
+      setLoading(true);
 
-      // Optimistically update UI
-      const newCommentObj = {
-        id: Date.now(),
-        content: newComment,
-        createdAt: new Date().toISOString(),
-        author: "Support Staff", // Replace with actual user info
-      };
+      const response = await fetch(
+        `http://localhost:8081/api/tickets/${ticketCode}/comments`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            commentText: newComment,
+            commentedBy: "Support Staff",
+          }),
+        }
+      );
 
-      setComments((prev) => [...prev, newCommentObj]);
+      if (!response.ok) throw new Error("Error posting comment");
+
+      const commentData = await response.json();
+
+      setTicket((prevTicket) => ({
+        ...prevTicket,
+        comments: [
+          ...prevTicket.comments,
+          {
+            CommentID: commentData.CommentID,
+            CommentedBy: "Support Staff",
+            CommentDate: new Date().toLocaleString(),
+            CommentText: newComment,
+          },
+        ],
+      }));
+
       setNewComment("");
     } catch (err) {
       console.error("Error posting comment:", err);
+      setError("There was an error submitting your comment. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -138,7 +135,6 @@ useEffect(() => {
             <CardTitle className="text-2xl font-bold">
               Ticket #{ticket.TicketCode}
             </CardTitle>
-
             <span
               className={`${getStatusColor(
                 ticket.Status
@@ -187,18 +183,28 @@ useEffect(() => {
                 Communication Trail
               </h3>
               <div className="space-y-4">
-                {comments.map((comment) => (
-                  <div key={comment.CommentID} className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <span className="font-small">{comment.CommentText}</span>
-                      <span className="font-small">{comment.CommentedBy}</span>
-                      <span className="text-sm text-gray-500">
-                        {comment.CommentDate}
-                      </span>
+                {ticket.comments && ticket.comments.length > 0 ? (
+                  ticket.comments.map((comment) => (
+                    <div
+                      key={comment.CommentID}
+                      className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="font-medium text-gray-800">
+                          {comment.CommentedBy}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {comment.CommentDate}
+                        </div>
+                      </div>
+                      <p className="text-gray-700 text-lg mb-2">
+                        {comment.CommentText}
+                      </p>
                     </div>
-                    <p className="mt-2 text-gray-700">{comment.content}</p>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p>No comments yet.</p>
+                )}
               </div>
 
               <form onSubmit={handleCommentSubmit} className="mt-6">
@@ -213,6 +219,7 @@ useEffect(() => {
                   <button
                     type="submit"
                     className="flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    disabled={loading}
                   >
                     <MessageCircle className="h-4 w-4" />
                     Send Response

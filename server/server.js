@@ -194,6 +194,36 @@ app.post("/api/ticket", async (req, res) => {
   }
 });
 
+// New endpoint to create a comment for a ticket
+app.post("/api/tickets/:ticketCode/comments", async (req, res) => {
+  const { ticketCode } = req.params;
+  const { commentText, commentedBy } = req.body;
+
+  const commentDate = new Date(); // Current date and time for the comment
+
+  try {
+    const connection = await pool.connect();
+    const result = await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .input("commentText", mssql.Text, commentText)
+      .input("commentedBy", mssql.VarChar, commentedBy)
+      .input("commentDate", mssql.DateTime, commentDate)
+      .query(
+        "INSERT INTO Comments (TicketCode, CommentText, CommentedBy, CommentDate) VALUES (@ticketCode, @commentText, @commentedBy, @commentDate)"
+      );
+
+    if (result.rowsAffected.length > 0) {
+      res.status(201).json({ message: "Comment added successfully" });
+    } else {
+      res.status(500).json({ error: "Failed to add comment" });
+    }
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
+
 const PORT = 8081;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
