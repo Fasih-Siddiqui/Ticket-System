@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import mssql from "mssql";
+import { v4 as uuidv4 } from "uuid";
 
+const ticketCode = uuidv4().slice(0, 5);
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -128,6 +130,30 @@ app.get("/api/tickets/:ticketCode", async (req, res) => {
   }
 });
 
+// New endpoint to get all comments for a ticket
+app.get("/api/tickets/:ticketCode/comments", async (req, res) => {
+  const { ticketCode } = req.params;
+
+  try {
+    const connection = await pool.connect();
+    const result = await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("SELECT * FROM Comments WHERE TicketCode = @ticketCode");
+
+    if (result.recordset.length > 0) {
+      res.status(200).json(result.recordset);
+    } else {
+      res.status(404).json({ error: "Comments not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching Comments:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
+});
+
 // Existing create ticket endpoint
 app.post("/api/ticket", async (req, res) => {
   const { title, employee, date, description, status, priority } = req.body;
@@ -136,7 +162,6 @@ app.post("/api/ticket", async (req, res) => {
     return res.status(400).json({ error: "Please fill in all fields" });
   }
 
-  const ticketCode = `T${Date.now()}`;
   const createdBy = "Admin";
 
   try {

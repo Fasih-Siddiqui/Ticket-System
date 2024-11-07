@@ -4,6 +4,10 @@ import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { MessageCircle, Clock, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
 
 const TicketDetails = ({ params }) => {
   const [ticket, setTicket] = useState(null);
@@ -23,9 +27,9 @@ const TicketDetails = ({ params }) => {
         const data = await response.json();
         setTicket(data);
         // Fetch comments if you have a separate endpoint
-        // const commentsResponse = await fetch(`http://localhost:8081/api/tickets/${ticketCode}/comments`);
-        // const commentsData = await commentsResponse.json();
-        // setComments(commentsData);
+        const commentsResponse = await fetch(`http://localhost:8081/api/tickets/${ticketCode}/comments`);
+        const commentsData = await commentsResponse.json();
+        setComments(commentsData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -38,17 +42,38 @@ const TicketDetails = ({ params }) => {
     }
   }, [ticketCode]);
 
+useEffect(() => {
+  const fetchTicketDetails = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8081/api/tickets/${ticketCode}/comments`
+      );
+      if (!response.ok) throw new Error("Comments not found");
+      const commentsData = await response.json();
+      setComments(commentsData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (ticketCode) {
+    fetchTicketDetails();
+  }
+}, [ticketCode]);
+
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
     try {
       // Add comment to the backend
-      // await fetch(`http://localhost:8081/api/tickets/${ticketCode}/comments`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ content: newComment }),
-      // });
+      await fetch(`http://localhost:8081/api/tickets/${ticketCode}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newComment }),
+      });
 
       // Optimistically update UI
       const newCommentObj = {
@@ -97,10 +122,23 @@ const TicketDetails = ({ params }) => {
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
+          <div className="fixed top-4 right-4">
+            <Link href={"/dashboard-admin"}>
+              <Button
+                variant="destructive"
+                size="icon"
+                className="rounded-full"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </Link>
+          </div>
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl font-bold">
               Ticket #{ticket.TicketCode}
             </CardTitle>
+
             <span
               className={`${getStatusColor(
                 ticket.Status
@@ -150,11 +188,12 @@ const TicketDetails = ({ params }) => {
               </h3>
               <div className="space-y-4">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
+                  <div key={comment.CommentID} className="bg-gray-50 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
-                      <span className="font-medium">{comment.author}</span>
+                      <span className="font-small">{comment.CommentText}</span>
+                      <span className="font-small">{comment.CommentedBy}</span>
                       <span className="text-sm text-gray-500">
-                        {new Date(comment.createdAt).toLocaleString()}
+                        {comment.CommentDate}
                       </span>
                     </div>
                     <p className="mt-2 text-gray-700">{comment.content}</p>
