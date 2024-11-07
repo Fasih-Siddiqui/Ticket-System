@@ -4,59 +4,7 @@ import mssql from "mssql";
 
 const app = express();
 app.use(cors());
-app.use(express.json()); 
-
-//Fasih Bhai Laptop
-
-// const config = {
-//   user: "sa",
-//   password: "1211",
-//   server: "SIDDIQUI",
-//   database: "TicketSystem",
-//   port: 1433,
-//   options: { encrypt: false },
-//   pool: {
-//     max: 10,
-//     min: 0,
-//     idleTimeoutMillis: 15000,
-//   },
-// };
-
-
-// // Abdul Haseeb's PC
-
-// const config = {
-//   user: "sa",
-//   password: "haseeb554hamid",
-//   server: "DESKTOP-GIJFQ1H",
-//   database: "TicketSystem",
-//   port: 1433,
-//   options: { encrypt: false },
-//   pool: {
-//     max: 10,
-//     min: 0,
-//     idleTimeoutMillis: 15000,
-//   },
-// };
-
-
-// //Mubeen Home PC
-
-// const config = {
-//   user: "sa",
-//   password: "sap123",
-//   server: "DESKTOP-JB8QTMC",
-//   database: "TicketSystem",
-//   port: 1433,
-//   options: { encrypt: false },
-//   pool: {
-//     max: 10,
-//     min: 0,
-//     idleTimeoutMillis: 15000,
-//   },
-// };
-
-//Mubeen Laptop
+app.use(express.json());
 
 const config = {
   user: "sa",
@@ -72,11 +20,9 @@ const config = {
   },
 };
 
-// Signup Logic
-
 const pool = new mssql.ConnectionPool(config);
 
-// Signup Logic
+// Existing signup endpoint
 app.post("/api/signup", async (req, res) => {
   const { fullname, email, username, password } = req.body;
 
@@ -105,7 +51,7 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-// Login Logic
+// Existing login endpoint
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -139,8 +85,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// Fetch Tickets Logic
-
+// Existing get all tickets endpoint
 app.get("/api/tickets", async (req, res) => {
   try {
     const connection = await pool.connect();
@@ -159,9 +104,31 @@ app.get("/api/tickets", async (req, res) => {
   }
 });
 
+// New endpoint to get a single ticket by ticketCode
+app.get("/api/tickets/:ticketCode", async (req, res) => {
+  const { ticketCode } = req.params;
 
-//Create Ticket System Logic
+  try {
+    const connection = await pool.connect();
+    const result = await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("SELECT * FROM Tickets WHERE TicketCode = @ticketCode");
 
+    if (result.recordset.length > 0) {
+      res.status(200).json(result.recordset[0]);
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching ticket:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
+});
+
+// Existing create ticket endpoint
 app.post("/api/ticket", async (req, res) => {
   const { title, employee, date, description, status, priority } = req.body;
 
@@ -169,8 +136,8 @@ app.post("/api/ticket", async (req, res) => {
     return res.status(400).json({ error: "Please fill in all fields" });
   }
 
-  const ticketCode = `T${Date.now()}`; 
-  const createdBy = "Admin"; 
+  const ticketCode = `T${Date.now()}`;
+  const createdBy = "Admin";
 
   try {
     const connection = await pool.connect();
@@ -181,7 +148,7 @@ app.post("/api/ticket", async (req, res) => {
       .input("employee", mssql.VarChar, employee)
       .input("description", mssql.Text, description)
       .input("priority", mssql.VarChar, priority)
-      .input("date", mssql.Date, new Date(date)) 
+      .input("date", mssql.Date, new Date(date))
       .input("createdBy", mssql.VarChar, createdBy)
       .input("status", mssql.VarChar, status)
       .query(
@@ -191,7 +158,7 @@ app.post("/api/ticket", async (req, res) => {
     if (result.rowsAffected.length > 0) {
       res.status(201).json({ message: "Ticket created successfully" });
     } else {
-      console.error("Insert failed. Result:", result); 
+      console.error("Insert failed. Result:", result);
       res.status(500).json({ error: "Ticket creation failed" });
     }
   } catch (error) {

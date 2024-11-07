@@ -1,18 +1,8 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import TicketModal from "../components/TicketModal";
 import { RiAddLargeFill } from "react-icons/ri";
-import { MdOutlineSpaceDashboard } from "react-icons/md";
-import { TiTicket } from "react-icons/ti";
-import { GoPeople } from "react-icons/go";
-import { HiOutlineCash } from "react-icons/hi";
-import { CiTimer } from "react-icons/ci";
-import { GoGoal } from "react-icons/go";
-import { GrMoney } from "react-icons/gr";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { RiAdminLine } from "react-icons/ri";
-import { GoPersonAdd } from "react-icons/go";
-import { RiContractLine } from "react-icons/ri";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -48,32 +38,32 @@ const Dashboard = () => {
     (ticket) => ticket.Status === "Close"
   ).length;
 
-  // Sidebar items
-  const sidebarItems = [
-    {
-      icon: MdOutlineSpaceDashboard,
-      label: "Dashboard",
-      link: "/dashboard",
-      active: false,
-    },
-    { icon: TiTicket, label: "Tickets", link: "/tickets", active: true },
-    { icon: GoPeople, label: "Employee", link: "/employee" },
-    { icon: HiOutlineCash, label: "Payroll", link: "/payroll" },
-    { icon: CiTimer, label: "Timesheet", link: "/timesheet" },
-    { icon: GoGoal, label: "Performance", link: "/performance" },
-    { icon: GrMoney, label: "Finance", link: "/finance" },
-    { icon: FaChalkboardTeacher, label: "Training", link: "/training" },
-    { icon: RiAdminLine, label: "HR Admin Setup", link: "/hr-admin" },
-    { icon: GoPersonAdd, label: "Recruitment", link: "/recruitment" },
-    { icon: RiContractLine, label: "Contracts", link: "/contracts" },
-  ];
+  // // Sidebar items
+  // const sidebarItems = [
+  //   {
+  //     icon: MdOutlineSpaceDashboard,
+  //     label: "Dashboard",
+  //     link: "/dashboard",
+  //     active: false,
+  //   },
+  //   { icon: TiTicket, label: "Tickets", link: "/tickets", active: true },
+  //   { icon: GoPeople, label: "Employee", link: "/employee" },
+  //   { icon: HiOutlineCash, label: "Payroll", link: "/payroll" },
+  //   { icon: CiTimer, label: "Timesheet", link: "/timesheet" },
+  //   { icon: GoGoal, label: "Performance", link: "/performance" },
+  //   { icon: GrMoney, label: "Finance", link: "/finance" },
+  //   { icon: FaChalkboardTeacher, label: "Training", link: "/training" },
+  //   { icon: RiAdminLine, label: "HR Admin Setup", link: "/hr-admin" },
+  //   { icon: GoPersonAdd, label: "Recruitment", link: "/recruitment" },
+  //   { icon: RiContractLine, label: "Contracts", link: "/contracts" },
+  // ];
 
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-white to-blue-100">
-      {/* Sidebar */}
+      {/* Sidebar
       <div className="w-64 text-black bg-white p-5 shadow-md">
         <img src="/logo.png" alt="logo" className="w-40 mb-8" />
-        <ul className="space-y-2">
+        {/* <ul className="space-y-2">
           {sidebarItems.map((item, index) => (
             <li
               key={index}
@@ -88,13 +78,13 @@ const Dashboard = () => {
             </li>
           ))}
         </ul>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <div className="flex-1 p-5">
         <div className="bg-white p-8 rounded-lg shadow-lg shadow-gray-700">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-black">Manage Ticket</h1>
+            <h1 className="text-2xl font-bold text-black">Manage Tickets</h1>
             <div className="flex items-center space-x-4">
               <button
                 className="bg-blue-700 text-white border border-blue-700 hover:bg-white hover:text-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:bg-blue-500 dark:text-white dark:hover:bg-white dark:hover:text-blue-500 dark:focus:ring-blue-900"
