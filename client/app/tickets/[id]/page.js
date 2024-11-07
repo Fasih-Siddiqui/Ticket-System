@@ -56,7 +56,7 @@ const TicketDetails = ({ params }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             commentText: newComment,
-            commentedBy: "Support Staff",
+            commentedBy: "Support Team",
           }),
         }
       );
@@ -71,7 +71,7 @@ const TicketDetails = ({ params }) => {
           ...prevTicket.comments,
           {
             CommentID: commentData.CommentID,
-            CommentedBy: "Support Staff",
+            CommentedBy: "Support Team",
             CommentDate: new Date().toLocaleString(),
             CommentText: newComment,
           },
@@ -180,7 +180,7 @@ const TicketDetails = ({ params }) => {
 
             <div className="mt-8">
               <h3 className="font-semibold text-gray-600 mb-4">
-                Communication Trail
+                Support Chat
               </h3>
               <div className="space-y-4">
                 {ticket.comments && ticket.comments.length > 0 ? (
