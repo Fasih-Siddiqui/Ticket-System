@@ -166,7 +166,7 @@ app.post("/api/ticket", async (req, res) => {
     return res.status(400).json({ error: "Please fill in all fields" });
   }
 
-  const createdBy = "Admin";
+  const createdBy = "User";
 
   try {
     const connection = await pool.connect();

@@ -10,6 +10,7 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
   const [animations, setAnimations] = useState([]);
   const router = useRouter();
 
@@ -45,7 +46,13 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (fullname === "" || email === "" || username === "" || password === "") {
+    if (
+      fullname === "" ||
+      email === "" ||
+      username === "" ||
+      password === "" ||
+      role === ""
+    ) {
       alert("Error: Please fill in all fields");
       return;
     }
@@ -56,6 +63,7 @@ export default function Signup() {
         email: email,
         username: username,
         password: password,
+        role: role,
       });
 
       console.log("Signup response:", response.data);
@@ -133,6 +141,23 @@ export default function Signup() {
             />
           </div>
           <div>
+            <label htmlFor="role" className="block text-gray-700">
+              Select your role:
+            </label>
+
+            <select
+              name="role"
+              id="role"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+              <option value="hr">HR</option>
+            </select>
+          </div>
+          <div>
             <label htmlFor="password" className="block text-gray-700">
               Password
             </label>
@@ -151,15 +176,14 @@ export default function Signup() {
           >
             Sign Up
           </button>
-          <div className ="mt-2 text-center" >
-          <button
-            type="button"
-            onClick={handleLoginRedirect}
-            className="text-sm text-blue-600 hover:underline focus:outline-none "
-          >
-            Login
-          </button>
-
+          <div className="mt-2 text-center">
+            <button
+              type="button"
+              onClick={handleLoginRedirect}
+              className="text-sm text-blue-600 hover:underline focus:outline-none "
+            >
+              Login
+            </button>
           </div>
         </form>
       </div>
