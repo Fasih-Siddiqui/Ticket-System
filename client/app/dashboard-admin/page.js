@@ -89,18 +89,7 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold text-black">Manage Tickets</h1>
             <div className="flex items-center space-x-4">
               <Button
-                variant="default"
-                size="icon"
-                className="rounded-full bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors"
-                onClick={() => {
-                  setIsModalOpen(true);
-                }}
-              >
-                <Plus className="h-5 w-5" />
-                <span className="sr-only">Add</span>
-              </Button>
-              <Button
-              variant="destructive"
+                variant="destructive"
                 onClick={() => {
                   router.push("/");
                 }}
@@ -109,10 +98,6 @@ const Dashboard = () => {
                 Logout
               </Button>
             </div>
-            <TicketModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-            />
           </div>
 
           <div className="flex flex-wrap justify-between gap-5 mb-8">

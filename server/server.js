@@ -53,7 +53,6 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-// Existing login endpoint
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -69,12 +68,16 @@ app.post("/api/login", async (req, res) => {
 
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
-      if (user.Username === "admin") {
-        res.json({ role: "admin" });
-      } else if (user.Username === "HR") {
-        res.json({ role: "hr" });
-      } else {
-        res.json({ role: "user" });
+      switch (user.Role.toLowerCase()) {
+        case "admin":
+          res.json({ role: "admin" });
+          break;
+        case "hr":
+          res.json({ role: "hr" });
+          break;
+        default:
+          res.json({ role: "user" });
+          break;
       }
     } else {
       res.status(401).json({ error: "Invalid credentials" });
@@ -86,6 +89,7 @@ app.post("/api/login", async (req, res) => {
       .json({ error: "Internal server error", details: error.message });
   }
 });
+
 
 // Existing get all tickets endpoint
 app.get("/api/tickets", async (req, res) => {

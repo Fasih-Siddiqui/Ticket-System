@@ -1,80 +1,207 @@
-// pages/index.js
+"use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import TicketModal from "../components/TicketModal";
+import { RiAddLargeFill } from "react-icons/ri";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const Home = () => {
+const Dashboard = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tickets, setTickets] = useState([]);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        const response = await fetch("http://localhost:8081/api/tickets");
+        const data = await response.json();
+        setTickets(data);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      }
+    };
+
+    fetchTickets();
+  }, []);
+
+  // Calculate ticket counts
+  const totalTickets = tickets.length;
+  const openTickets = tickets.filter(
+    (ticket) => ticket.Status === "Open"
+  ).length;
+  const holdTickets = tickets.filter(
+    (ticket) => ticket.Status === "Hold"
+  ).length;
+  const closeTickets = tickets.filter(
+    (ticket) => ticket.Status === "Close"
+  ).length;
+
+  // // Sidebar items
+  // const sidebarItems = [
+  //   {
+  //     icon: MdOutlineSpaceDashboard,
+  //     label: "Dashboard",
+  //     link: "/dashboard",
+  //     active: false,
+  //   },
+  //   { icon: TiTicket, label: "Tickets", link: "/tickets", active: true },
+  //   { icon: GoPeople, label: "Employee", link: "/employee" },
+  //   { icon: HiOutlineCash, label: "Payroll", link: "/payroll" },
+  //   { icon: CiTimer, label: "Timesheet", link: "/timesheet" },
+  //   { icon: GoGoal, label: "Performance", link: "/performance" },
+  //   { icon: GrMoney, label: "Finance", link: "/finance" },
+  //   { icon: FaChalkboardTeacher, label: "Training", link: "/training" },
+  //   { icon: RiAdminLine, label: "HR Admin Setup", link: "/hr-admin" },
+  //   { icon: GoPersonAdd, label: "Recruitment", link: "/recruitment" },
+  //   { icon: RiContractLine, label: "Contracts", link: "/contracts" },
+  // ];
+
   return (
-    <div className="text-black">
-      <div className="flex min-h-screen bg-gray-100">
-        {/* Sidebar */}
-        <div className="w-64 bg-white p-5 shadow-md">
-          <div className="text-lg font-bold mb-5">i-MSConsulting</div>
-          <ul>
-            <li className="mb-2">Dashboard</li>
-            <li className="mb-2">Staff</li>
-            <li className="mb-2">Employee</li>
-            <li className="mb-2">Payroll</li>
-            <li className="mb-2">Timesheet</li>
-            <li className="mb-2">Performance</li>
-            <li className="mb-2">Finance</li>
-            <li className="mb-2">Training</li>
-            <li className="mb-2">HR Admin Setup</li>
-            <li className="mb-2">Recruitment</li>
-            <li className="mb-2">Contracts</li>
-          </ul>
-        </div>
+    <div className="flex min-h-screen bg-gradient-to-b from-white to-blue-100">
+      {/* Sidebar
+      <div className="w-64 text-black bg-white p-5 shadow-md">
+        <img src="/logo.png" alt="logo" className="w-40 mb-8" />
+        {/* <ul className="space-y-2">
+          {sidebarItems.map((item, index) => (
+            <li
+              key={index}
+              className={`p-3 rounded flex items-center space-x-4 cursor-pointer duration-300 ${
+                item.active
+                  ? "bg-sidebar-color text-white"
+                  : "hover:bg-gray-100 hover:text-blue-700"
+              }`}
+            >
+              <item.icon className="text-lg" />
+              <Link href={item.link}>{item.label}</Link>
+            </li>
+          ))}
+        </ul>
+      </div> */}
 
-        {/* Main Content */}
-        <div className="flex-1 p-5">
-          <div className="bg-white p-5 shadow-md rounded-md mb-5">
-            <div className="flex justify-between items-center mb-5">
-              <h1 className="text-2xl font-bold">Manage Ticket</h1>
-              <button className="bg-blue-500 text-white p-2 rounded-md">
-                +
-              </button>
+      {/* Main Content */}
+      <div className="flex-1 p-5">
+        <div className="bg-white p-8 rounded-lg shadow-lg shadow-gray-700">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-bold text-black">Manage Tickets</h1>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="default"
+                size="icon"
+                className="rounded-full bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors"
+                onClick={() => {
+                  setIsModalOpen(true);
+                }}
+              >
+                <Plus className="h-5 w-5" />
+                <span className="sr-only">Add</span>
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  router.push("/");
+                }}
+                className="px-4 py-2"
+              >
+                Logout
+              </Button>
             </div>
-            <div className="grid grid-cols-4 gap-5 mb-5">
-              <div className="bg-white p-5 shadow-md rounded-md">
-                <h2 className="text-lg font-bold">Total Ticket</h2>
-                <p className="text-2xl">0</p>
-              </div>
-              <div className="bg-white p-5 shadow-md rounded-md">
-                <h2 className="text-lg font-bold">Open Ticket</h2>
-                <p className="text-2xl">0</p>
-              </div>
-              <div className="bg-white p-5 shadow-md rounded-md">
-                <h2 className="text-lg font-bold">Hold Ticket</h2>
-                <p className="text-2xl">0</p>
-              </div>
-              <div className="bg-white p-5 shadow-md rounded-md">
-                <h2 className="text-lg font-bold">Close Ticket</h2>
-                <p className="text-2xl">0</p>
-              </div>
+            <TicketModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+            />
+          </div>
+
+          <div className="flex flex-wrap justify-between gap-5 mb-8">
+            <div className="card flex-1 min-w-[240px] bg-cyan-card text-white p-5 shadow-xl shadow-gray-400 rounded-md">
+              <h2 className="text-lg font-bold">Total Tickets</h2>
+              <p className="text-2xl">{totalTickets}</p>
             </div>
-            <div className="bg-white p-5 shadow-md rounded-md">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2">New</th>
-                    <th className="px-4 py-2">Title</th>
-                    <th className="px-4 py-2">Ticket Code</th>
-                    <th className="px-4 py-2">Employee</th>
-                    <th className="px-4 py-2">Priority</th>
-                    <th className="px-4 py-2">Date</th>
-                    <th className="px-4 py-2">Created By</th>
-                    <th className="px-4 py-2">Status</th>
-                    <th className="px-4 py-2">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2 text-center" colSpan="9">
-                      No entries found
+            <div className="card flex-1 min-w-[240px] bg-sidebar-color text-white border border-sidebar-color p-5 shadow-xl shadow-gray-400 rounded-md">
+              <h2 className="text-lg font-bold">Open Tickets</h2>
+              <p className="text-2xl">{openTickets}</p>
+            </div>
+            <div className="card flex-1 min-w-[240px] bg-orange-card text-white p-5 shadow-xl shadow-gray-400 rounded-md">
+              <h2 className="text-lg font-bold">Hold Tickets</h2>
+              <p className="text-2xl">{holdTickets}</p>
+            </div>
+            <div className="card flex-1 min-w-[240px] bg-red-card text-white p-5 shadow-xl shadow-gray-400 rounded-md">
+              <h2 className="text-lg font-bold">Closed Tickets</h2>
+              <p className="text-2xl">{closeTickets}</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border-gray-200 shadow">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ticket Code
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Employee
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Priority
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-600 text-sm font-light">
+                {tickets.map((ticket) => (
+                  <tr
+                    key={ticket.TicketCode}
+                    className="border-b border-gray-200 hover:bg-gray-100"
+                  >
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {ticket.TicketCode}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {ticket.Title}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {ticket.Employee}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {ticket.Priority}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {ticket.Date}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {ticket.CreatedBy}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {ticket.Status}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      <Link href={`/tickets/${ticket.TicketCode}`}>
+                        <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
+                          View
+                        </button>
+                      </Link>
                     </td>
                   </tr>
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -82,4 +209,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Dashboard;
