@@ -2,11 +2,17 @@ import express from "express";
 import cors from "cors";
 import mssql from "mssql";
 import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 
-const ticketCode = uuidv4().slice(0, 5);
+const JWT_SECRET = "your-secret-key"; // In production, use environment variable
 const app = express();
-app.use(cors());
+app.use(cors({ 
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 const config = {
   user: "sa",
@@ -23,6 +29,23 @@ const config = {
 };
 
 const pool = new mssql.ConnectionPool(config);
+
+// Middleware to verify JWT token
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: "Access denied. No token provided." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(403).json({ error: "Invalid token." });
+  }
+};
 
 // Existing signup endpoint
 app.post("/api/signup", async (req, res) => {
@@ -68,74 +91,93 @@ app.post("/api/login", async (req, res) => {
 
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
-      switch (user.Role.toLowerCase()) {
-        case "admin":
-          res.json({ role: "admin" });
-          break;
-        case "hr":
-          res.json({ role: "hr" });
-          break;
-        default:
-          res.json({ role: "user" });
-          break;
-      }
+      const token = jwt.sign(
+        { 
+          id: user.UserID,
+          username: user.Username,
+          role: user.Role.toLowerCase()
+        },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({ 
+        token,
+        role: user.Role.toLowerCase(),
+        username: user.Username
+      });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
     }
   } catch (error) {
     console.error("Error authenticating user:", error);
-    res
-      .status(500)
-      .json({ error: "Internal server error", details: error.message });
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
-
-// Existing get all tickets endpoint
-app.get("/api/tickets", async (req, res) => {
+// Get all tickets endpoint with user filtering
+app.get("/api/tickets", authenticateToken, async (req, res) => {
   try {
     const connection = await pool.connect();
-    const result = await connection.request().query("SELECT * FROM Tickets");
+    let query = "SELECT * FROM Tickets";
+    
+    // If not admin, only show user's tickets
+    if (req.user.role !== 'admin') {
+      query += " WHERE CreatedBy = @username";
+    }
+
+    const result = await connection
+      .request()
+      .input("username", mssql.VarChar, req.user.username)
+      .query(query);
 
     if (result.recordset.length > 0) {
       res.status(200).json(result.recordset);
     } else {
-      res.status(404).json({ error: "No tickets found" });
+      res.status(200).json([]); // Return empty array if no tickets found
     }
   } catch (error) {
     console.error("Error fetching tickets:", error);
-    res
-      .status(500)
-      .json({ error: "Internal server error", details: error.message });
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
 // New endpoint to get a single ticket by ticketCode
-app.get("/api/tickets/:ticketCode", async (req, res) => {
+app.get("/api/tickets/:ticketCode", authenticateToken, async (req, res) => {
   const { ticketCode } = req.params;
 
   try {
     const connection = await pool.connect();
-    const result = await connection
+    
+    // Get ticket details
+    const ticketResult = await connection
       .request()
       .input("ticketCode", mssql.VarChar, ticketCode)
       .query("SELECT * FROM Tickets WHERE TicketCode = @ticketCode");
 
-    if (result.recordset.length > 0) {
-      res.status(200).json(result.recordset[0]);
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
+    if (ticketResult.recordset.length === 0) {
+      return res.status(404).json({ error: "Ticket not found" });
     }
+
+    // Get comments for this ticket
+    const commentsResult = await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("SELECT * FROM Comments WHERE TicketCode = @ticketCode ORDER BY CommentDate DESC");
+
+    // Combine ticket and comments
+    const ticket = ticketResult.recordset[0];
+    ticket.comments = commentsResult.recordset || [];
+
+    res.status(200).json(ticket);
   } catch (error) {
     console.error("Error fetching ticket:", error);
-    res
-      .status(500)
-      .json({ error: "Internal server error", details: error.message });
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
 // New endpoint to get all comments for a ticket
-app.get("/api/tickets/:ticketCode/comments", async (req, res) => {
+app.get("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res) => {
   const { ticketCode } = req.params;
 
   try {
@@ -158,15 +200,14 @@ app.get("/api/tickets/:ticketCode/comments", async (req, res) => {
   }
 });
 
-// Existing create ticket endpoint
-app.post("/api/ticket", async (req, res) => {
+// Create ticket endpoint
+app.post("/api/ticket", authenticateToken, async (req, res) => {
   const { title, employee, date, description, status, priority } = req.body;
+  const ticketCode = uuidv4().slice(0, 8).toUpperCase(); // Generate unique ticket code for each ticket
 
   if (!title || !employee || !date || !description) {
     return res.status(400).json({ error: "Please fill in all fields" });
   }
-
-  const createdBy = "User";
 
   try {
     const connection = await pool.connect();
@@ -178,35 +219,64 @@ app.post("/api/ticket", async (req, res) => {
       .input("description", mssql.Text, description)
       .input("priority", mssql.VarChar, priority)
       .input("date", mssql.Date, new Date(date))
-      .input("createdBy", mssql.VarChar, createdBy)
+      .input("createdBy", mssql.VarChar, req.user.username)
       .input("status", mssql.VarChar, status)
       .query(
         "INSERT INTO Tickets (TicketCode, Title, Description, Employee, Priority, Date, CreatedBy, Status) VALUES (@ticketCode, @title, @description, @employee, @priority, @date, @createdBy, @status)"
       );
 
     if (result.rowsAffected.length > 0) {
-      res.status(201).json({ message: "Ticket created successfully" });
+      // Return the created ticket data including the ticketCode
+      res.status(201).json({ 
+        message: "Ticket created successfully",
+        ticket: {
+          ticketCode,
+          title,
+          employee,
+          description,
+          priority,
+          date,
+          createdBy: req.user.username,
+          status
+        }
+      });
     } else {
-      console.error("Insert failed. Result:", result);
       res.status(500).json({ error: "Ticket creation failed" });
     }
   } catch (error) {
     console.error("Error creating ticket:", error);
-    res
-      .status(500)
-      .json({ error: "Internal server error", details: error.message });
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
 // New endpoint to create a comment for a ticket
-app.post("/api/tickets/:ticketCode/comments", async (req, res) => {
+app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res) => {
   const { ticketCode } = req.params;
   const { commentText, commentedBy } = req.body;
 
-  const commentDate = new Date(); // Current date and time for the comment
-
+  // Validate that the commenter is either the ticket owner or an admin
   try {
     const connection = await pool.connect();
+    
+    // First check if the user is authorized to comment on this ticket
+    const ticketResult = await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("SELECT CreatedBy FROM Tickets WHERE TicketCode = @ticketCode");
+
+    if (ticketResult.recordset.length === 0) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const ticket = ticketResult.recordset[0];
+    
+    // Only allow comments if user is admin or the ticket creator
+    if (req.user.role !== 'admin' && req.user.username !== ticket.CreatedBy) {
+      return res.status(403).json({ error: "Not authorized to comment on this ticket" });
+    }
+
+    const commentDate = new Date();
+    
     const result = await connection
       .request()
       .input("ticketCode", mssql.VarChar, ticketCode)
@@ -214,16 +284,94 @@ app.post("/api/tickets/:ticketCode/comments", async (req, res) => {
       .input("commentedBy", mssql.VarChar, commentedBy)
       .input("commentDate", mssql.DateTime, commentDate)
       .query(
-        "INSERT INTO Comments (TicketCode, CommentText, CommentedBy, CommentDate) VALUES (@ticketCode, @commentText, @commentedBy, @commentDate)"
+        "INSERT INTO Comments (TicketCode, CommentText, CommentedBy, CommentDate) VALUES (@ticketCode, @commentText, @commentedBy, @commentDate); SELECT SCOPE_IDENTITY() AS commentId;"
       );
 
-    if (result.rowsAffected.length > 0) {
-      res.status(201).json({ message: "Comment added successfully" });
+    if (result.recordset && result.recordset[0]) {
+      res.status(201).json({ 
+        message: "Comment added successfully",
+        commentId: result.recordset[0].commentId
+      });
     } else {
       res.status(500).json({ error: "Failed to add comment" });
     }
   } catch (error) {
     console.error("Error adding comment:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
+
+// Delete ticket endpoint (admin only)
+app.delete("/api/tickets/:ticketCode", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: "Only administrators can delete tickets" });
+  }
+
+  try {
+    const connection = await pool.connect();
+
+    // First delete all comments associated with the ticket
+    await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("DELETE FROM Comments WHERE TicketCode = @ticketCode");
+
+    // Then delete the ticket
+    const result = await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("DELETE FROM Tickets WHERE TicketCode = @ticketCode");
+
+    if (result.rowsAffected[0] > 0) {
+      res.status(200).json({ message: "Ticket deleted successfully" });
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting ticket:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
+
+// Update ticket endpoint (admin only)
+app.put("/api/tickets/:ticketCode", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+  const { title, description, status, priority } = req.body;
+
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: "Only administrators can update tickets" });
+  }
+
+  try {
+    const connection = await pool.connect();
+    const result = await connection
+      .request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .input("title", mssql.VarChar, title)
+      .input("description", mssql.VarChar, description)
+      .input("status", mssql.VarChar, status)
+      .input("priority", mssql.VarChar, priority)
+      .query(`
+        UPDATE Tickets 
+        SET Title = @title, 
+            Description = @description, 
+            Status = @status, 
+            Priority = @priority,
+            UpdatedDate = GETDATE()
+        WHERE TicketCode = @ticketCode
+      `);
+
+    if (result.rowsAffected[0] > 0) {
+      res.status(200).json({ message: "Ticket updated successfully" });
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error updating ticket:", error);
     res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });

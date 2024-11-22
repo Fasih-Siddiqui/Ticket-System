@@ -9,7 +9,7 @@ const TicketModal = ({ isOpen, onClose }) => {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("Open");
   const [priority, setPriority] = useState("Low");
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -24,33 +24,48 @@ const TicketModal = ({ isOpen, onClose }) => {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Please login again");
+        window.location.href = '/';
+        return;
+      }
+
       const response = await axios.post("http://localhost:8081/api/ticket", {
         title,
         employee,
-        date, 
+        date,
         description,
         status,
         priority,
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       console.log("Ticket creation response:", response.data);
       alert("Ticket created successfully!");
 
-    
       setTitle("");
       setEmployee("");
       setDate("");
       setDescription("");
-      setStatus("Open"); 
-      setPriority("Low"); 
+      setStatus("Open");
+      setPriority("Low");
 
       setLoading(false);
-      onClose(); 
+      onClose();
 
       window.location.reload();
     } catch (error) {
       console.error("Ticket creation error:", error);
-      alert("Ticket creation failed");
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+      } else {
+        alert("Ticket creation failed");
+      }
       setLoading(false);
     }
   };

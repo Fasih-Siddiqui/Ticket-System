@@ -1,197 +1,266 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import TicketModal from "../components/TicketModal";
-import { RiAddLargeFill } from "react-icons/ri";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { Edit2, Trash2, RefreshCw } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const Dashboard = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        const response = await fetch("http://localhost:8081/api/tickets");
-        const data = await response.json();
-        setTickets(data);
-      } catch (error) {
-        console.error("Error fetching tickets:", error);
-      }
-    };
-
-    fetchTickets();
-  }, []);
 
   // Calculate ticket counts
   const totalTickets = tickets.length;
-  const openTickets = tickets.filter(
-    (ticket) => ticket.Status === "Open"
-  ).length;
-  const holdTickets = tickets.filter(
-    (ticket) => ticket.Status === "Hold"
-  ).length;
-  const closeTickets = tickets.filter(
-    (ticket) => ticket.Status === "Close"
-  ).length;
+  const openTickets = tickets.filter((ticket) => ticket.Status === "Open").length;
+  const inProgressTickets = tickets.filter((ticket) => ticket.Status === "In Progress").length;
+  const closedTickets = tickets.filter((ticket) => ticket.Status === "Closed").length;
 
-  // // Sidebar items
-  // const sidebarItems = [
-  //   {
-  //     icon: MdOutlineSpaceDashboard,
-  //     label: "Dashboard",
-  //     link: "/dashboard",
-  //     active: false,
-  //   },
-  //   { icon: TiTicket, label: "Tickets", link: "/tickets", active: true },
-  //   { icon: GoPeople, label: "Employee", link: "/employee" },
-  //   { icon: HiOutlineCash, label: "Payroll", link: "/payroll" },
-  //   { icon: CiTimer, label: "Timesheet", link: "/timesheet" },
-  //   { icon: GoGoal, label: "Performance", link: "/performance" },
-  //   { icon: GrMoney, label: "Finance", link: "/finance" },
-  //   { icon: FaChalkboardTeacher, label: "Training", link: "/training" },
-  //   { icon: RiAdminLine, label: "HR Admin Setup", link: "/hr-admin" },
-  //   { icon: GoPersonAdd, label: "Recruitment", link: "/recruitment" },
-  //   { icon: RiContractLine, label: "Contracts", link: "/contracts" },
-  // ];
+  const fetchTickets = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:8081/api/tickets", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setTickets(response.data);
+      setError(null);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to fetch tickets");
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/");
+      return;
+    }
+
+    fetchTickets();
+  }, [router]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchTickets();
+  };
+
+  const handleDelete = async (ticketCode) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:8081/api/tickets/${ticketCode}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setDeleteDialogOpen(false);
+      setTicketToDelete(null);
+      await fetchTickets(); // Refresh the tickets list
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to delete ticket");
+      }
+    }
+  };
+
+  const confirmDelete = (ticket) => {
+    setTicketToDelete(ticket);
+    setDeleteDialogOpen(true);
+  };
+
+  const getStatusColor = (status) => {
+    const statusColors = {
+      Open: "bg-yellow-500",
+      "In Progress": "bg-blue-500",
+      Closed: "bg-green-500",
+    };
+    return statusColors[status] || "bg-gray-500";
+  };
+
+  const getPriorityColor = (priority) => {
+    const priorityColors = {
+      Low: "bg-green-500",
+      Medium: "bg-yellow-500",
+      High: "bg-red-500",
+    };
+    return priorityColors[priority] || "bg-gray-500";
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-b from-white to-blue-100">
-      {/* Sidebar
-      <div className="w-64 text-black bg-white p-5 shadow-md">
-        <img src="/logo.png" alt="logo" className="w-40 mb-8" />
-        {/* <ul className="space-y-2">
-          {sidebarItems.map((item, index) => (
-            <li
-              key={index}
-              className={`p-3 rounded flex items-center space-x-4 cursor-pointer duration-300 ${
-                item.active
-                  ? "bg-sidebar-color text-white"
-                  : "hover:bg-gray-100 hover:text-blue-700"
-              }`}
-            >
-              <item.icon className="text-lg" />
-              <Link href={item.link}>{item.label}</Link>
-            </li>
-          ))}
-        </ul>
-      </div> */}
-
-      {/* Main Content */}
-      <div className="flex-1 p-5">
-        <div className="bg-white p-8 rounded-lg shadow-lg shadow-gray-700">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-black">Manage Tickets</h1>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  router.push("/");
-                }}
-                className="px-4 py-2"
-              >
-                Logout
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-between gap-5 mb-8">
-            <div className="card flex-1 min-w-[240px] bg-cyan-card text-white p-5 shadow-xl shadow-gray-400 rounded-md">
-              <h2 className="text-lg font-bold">Total Tickets</h2>
-              <p className="text-2xl">{totalTickets}</p>
-            </div>
-            <div className="card flex-1 min-w-[240px] bg-sidebar-color text-white border border-sidebar-color p-5 shadow-xl shadow-gray-400 rounded-md">
-              <h2 className="text-lg font-bold">Open Tickets</h2>
-              <p className="text-2xl">{openTickets}</p>
-            </div>
-            <div className="card flex-1 min-w-[240px] bg-orange-card text-white p-5 shadow-xl shadow-gray-400 rounded-md">
-              <h2 className="text-lg font-bold">Hold Tickets</h2>
-              <p className="text-2xl">{holdTickets}</p>
-            </div>
-            <div className="card flex-1 min-w-[240px] bg-red-card text-white p-5 shadow-xl shadow-gray-400 rounded-md">
-              <h2 className="text-lg font-bold">Closed Tickets</h2>
-              <p className="text-2xl">{closeTickets}</p>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border-gray-200 shadow">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ticket Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Employee
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Priority
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created By
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-600 text-sm font-light">
-                {tickets.map((ticket) => (
-                  <tr
-                    key={ticket.TicketCode}
-                    className="border-b border-gray-200 hover:bg-gray-100"
-                  >
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      {ticket.TicketCode}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      {ticket.Title}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      {ticket.Employee}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      {ticket.Priority}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      {ticket.Date}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      {ticket.CreatedBy}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      {ticket.Status}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      <Link href={`/tickets/${ticket.TicketCode}`}>
-                        <button className="bg-blue-500 text-white px-2 py-1 rounded-md">
-                          View
-                        </button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            className={refreshing ? "animate-spin" : ""}
+            disabled={refreshing}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex gap-4">
+          <Link href="/create-ticket">
+            <Button>Create New Ticket</Button>
+          </Link>
+          <Button
+            variant="outline"
+            onClick={() => {
+              localStorage.removeItem("token");
+              router.push("/");
+            }}
+          >
+            Logout
+          </Button>
         </div>
       </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="bg-blue-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Total Tickets</h3>
+            <p className="text-3xl font-bold">{totalTickets}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Open Tickets</h3>
+            <p className="text-3xl font-bold">{openTickets}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-blue-600 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">In Progress</h3>
+            <p className="text-3xl font-bold">{inProgressTickets}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Closed Tickets</h3>
+            <p className="text-3xl font-bold">{closedTickets}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid gap-4">
+        {tickets.map((ticket) => (
+          <Card key={ticket.TicketID} className="w-full hover:shadow-lg transition-shadow duration-200">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4 mb-2">
+                    <h3 className="text-lg font-semibold">{ticket.Title}</h3>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs text-white ${getStatusColor(
+                        ticket.Status
+                      )}`}
+                    >
+                      {ticket.Status}
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs text-white ${getPriorityColor(
+                        ticket.Priority
+                      )}`}
+                    >
+                      {ticket.Priority}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-2">#{ticket.TicketCode}</p>
+                  <p className="text-sm text-gray-500">
+                    Created by: {ticket.CreatedBy}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Link href={`/tickets/${ticket.TicketCode}`}>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Edit2 className="h-4 w-4" />
+                      Edit
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => confirmDelete(ticket)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Ticket</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete ticket #{ticketToDelete?.TicketCode}?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDelete(ticketToDelete?.TicketCode)}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
-
-export default Dashboard;
+}

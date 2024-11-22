@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import LoginGif from "./components/loginGif";
 
-export default function Home() {
-  const [values, setValues] = useState("");
-  const [pass, setPass] = useState("");
+export default function Login() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [animations, setAnimations] = useState([]);
   const router = useRouter();
 
@@ -37,20 +39,31 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (values === "" || pass === "") {
+    setError("");
+    if (username === "" || password === "") {
       alert("Error: Please fill in both fields");
       return;
     }
 
     try {
       const response = await axios.post("http://localhost:8081/api/login", {
-        username: values,
-        password: pass,
+        username,
+        password,
+      }, {
+        withCredentials: true
       });
 
-      const { role } = response.data;
+      const { token, role, username: loggedInUser } = response.data;
 
+      // Store token in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', role);
+      localStorage.setItem('username', loggedInUser);
+
+      // Configure axios defaults for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // Redirect based on role
       if (role === "admin") {
         router.push("/dashboard-admin");
       } else if (role == "hr" || role == 'HR') {
@@ -62,7 +75,9 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Invalid username or password");
+      setError(
+        error.response?.data?.error || "An error occurred during login"
+      );
     }
   };
 
@@ -103,8 +118,8 @@ export default function Home() {
               type="text"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
               placeholder="Enter your username"
-              value={values}
-              onChange={(e) => setValues(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
           </div>
           <div>
@@ -116,8 +131,8 @@ export default function Home() {
               type="password"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
               placeholder="Enter your password"
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <div className="flex items-center justify-between">
