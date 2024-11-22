@@ -138,9 +138,6 @@ export default function AdminDashboard() {
           </Button>
         </div>
         <div className="flex gap-4">
-          <Link href="/create-ticket">
-            <Button>Create New Ticket</Button>
-          </Link>
           <Button
             variant="outline"
             onClick={() => {

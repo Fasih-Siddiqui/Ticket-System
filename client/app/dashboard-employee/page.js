@@ -10,10 +10,22 @@ import { Edit2, Plus, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function EmployeeDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -22,6 +34,14 @@ export default function EmployeeDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [newTicket, setNewTicket] = useState({
+    title: "",
+    description: "",
+    priority: "",
+    employee: "",
+    date: new Date().toISOString().split('T')[0],
+    status: "Open"
+  });
   const router = useRouter();
 
   // Calculate ticket counts
@@ -81,6 +101,52 @@ export default function EmployeeDashboard() {
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchTickets();
+  };
+
+  const handleCreateTicket = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      if (!newTicket.title || !newTicket.description || !newTicket.priority || !newTicket.employee) {
+        setError("Please fill in all fields");
+        return;
+      }
+
+      await axios.post(
+        "http://localhost:8081/api/ticket",
+        {
+          title: newTicket.title,
+          description: newTicket.description,
+          priority: newTicket.priority,
+          employee: userData.username, // Set employee as current user
+          date: newTicket.date,
+          status: newTicket.status
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Reset form and close modal
+      setNewTicket({ title: "", description: "", priority: "", employee: "", date: new Date().toISOString().split('T')[0], status: "Open" });
+      setIsModalOpen(false);
+      
+      // Refresh tickets list
+      fetchTickets();
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to create ticket");
+      }
+    }
   };
 
   const getStatusColor = (status) => {
@@ -231,8 +297,70 @@ export default function EmployeeDashboard() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Ticket</DialogTitle>
+            <DialogDescription>
+              Fill in the details below to create a new ticket.
+            </DialogDescription>
           </DialogHeader>
-          {/* Add your ticket creation form here */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={newTicket.title}
+                onChange={(e) =>
+                  setNewTicket({ ...newTicket, title: e.target.value })
+                }
+                placeholder="Enter ticket title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={newTicket.description}
+                onChange={(e) =>
+                  setNewTicket({ ...newTicket, description: e.target.value })
+                }
+                placeholder="Describe your issue"
+                rows={4}
+              />
+            </div>
+            <div>
+              <Label htmlFor="priority">Priority</Label>
+              <Select
+                value={newTicket.priority}
+                onValueChange={(value) =>
+                  setNewTicket({ ...newTicket, priority: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="employee">Employee</Label>
+              <Input
+                id="employee"
+                value={newTicket.employee}
+                onChange={(e) =>
+                  setNewTicket({ ...newTicket, employee: e.target.value })
+                }
+                placeholder="Enter employee name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateTicket}>Create Ticket</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
