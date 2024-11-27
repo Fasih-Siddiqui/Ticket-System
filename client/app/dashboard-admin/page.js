@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [userData, setUserData] = useState(null);
   const router = useRouter();
 
   // Calculate ticket counts
@@ -59,6 +60,21 @@ export default function AdminDashboard() {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/");
+      return;
+    }
+
+    // Decode token to get user data
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      setUserData(JSON.parse(jsonPayload));
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      localStorage.removeItem('token');
+      router.push('/');
       return;
     }
 
@@ -126,7 +142,12 @@ export default function AdminDashboard() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            {userData && (
+              <p className="text-gray-600">Welcome, {userData.fullname}</p>
+            )}
+          </div>
           <Button
             variant="outline"
             size="icon"

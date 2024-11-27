@@ -17,7 +17,7 @@ app.use(cookieParser());
 const config = {
   user: "sa",
   password: "sap123",
-  server: "DESKTOP-KBHMTST",
+  server: "MUBEEN-LENOVO-L",
   database: "TicketSystem",
   port: 1433,
   options: { encrypt: false },
@@ -39,28 +39,57 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
+    console.log("Received token:", token);
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log("Decoded token:", decoded);
     req.user = decoded;
     next();
   } catch (error) {
+    console.error("Token verification error:", error);
     res.status(403).json({ error: "Invalid token." });
   }
 };
 
 // Existing signup endpoint
 app.post("/api/signup", async (req, res) => {
-  const { fullname, email, username, password } = req.body;
+  const { fullname, email, username, password, role } = req.body;
+
+  if (!fullname || !email || !username || !password || !role) {
+    return res.status(400).json({ error: "Please fill in all required fields" });
+  }
 
   try {
     const connection = await pool.connect();
+    
+    // Check if username already exists
+    const checkUser = await connection
+      .request()
+      .input("username", mssql.VarChar, username)
+      .query("SELECT Username FROM Users WHERE Username = @username");
+
+    if (checkUser.recordset.length > 0) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+
+    // Check if email already exists
+    const checkEmail = await connection
+      .request()
+      .input("email", mssql.VarChar, email)
+      .query("SELECT Email FROM Users WHERE Email = @email");
+
+    if (checkEmail.recordset.length > 0) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
     const result = await connection
       .request()
       .input("fullname", mssql.VarChar, fullname)
       .input("email", mssql.VarChar, email)
       .input("username", mssql.VarChar, username)
       .input("password", mssql.VarChar, password)
+      .input("role", mssql.VarChar, role)
       .query(
-        "INSERT INTO Users (Fullname, Email, Username, Password) VALUES (@fullname, @email, @username, @password)"
+        "INSERT INTO Users (Fullname, Email, Username, Password, Role) VALUES (@fullname, @email, @username, @password, @role)"
       );
 
     if (result.rowsAffected.length > 0) {
@@ -70,9 +99,10 @@ app.post("/api/signup", async (req, res) => {
     }
   } catch (error) {
     console.error("User creation error:", error);
-    res
-      .status(500)
-      .json({ error: "Internal server error", details: error.message });
+    res.status(500).json({ 
+      error: "Internal server error", 
+      details: error.message 
+    });
   }
 });
 
@@ -86,25 +116,36 @@ app.post("/api/login", async (req, res) => {
       .input("username", mssql.VarChar, username)
       .input("password", mssql.VarChar, password)
       .query(
-        "SELECT * FROM Users WHERE Username = @username AND Password = @password"
+        "SELECT UserID, Username, Fullname, Role FROM Users WHERE Username = @username AND Password = @password"
       );
 
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
+      console.log("User data from DB:", user); // Debug log
+      
       const token = jwt.sign(
         { 
           id: user.UserID,
           username: user.Username,
+          fullname: user.Fullname, // Make sure this matches the case from the database
           role: user.Role.toLowerCase()
         },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
 
+      console.log("Generated token payload:", { 
+        id: user.UserID,
+        username: user.Username,
+        fullname: user.Fullname,
+        role: user.Role.toLowerCase()
+      }); // Debug log
+
       res.json({ 
         token,
         role: user.Role.toLowerCase(),
-        username: user.Username
+        username: user.Username,
+        fullname: user.Fullname
       });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
@@ -202,11 +243,11 @@ app.get("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res)
 
 // Create ticket endpoint
 app.post("/api/ticket", authenticateToken, async (req, res) => {
-  const { title, employee, date, description, status, priority } = req.body;
-  const ticketCode = uuidv4().slice(0, 8).toUpperCase(); // Generate unique ticket code for each ticket
+  const { title, description, priority, status } = req.body;
+  const ticketCode = uuidv4().slice(0, 8).toUpperCase();
 
-  if (!title || !employee || !date || !description) {
-    return res.status(400).json({ error: "Please fill in all fields" });
+  if (!title || !description || !priority) {
+    return res.status(400).json({ error: "Please fill in all required fields" });
   }
 
   try {
@@ -215,29 +256,29 @@ app.post("/api/ticket", authenticateToken, async (req, res) => {
       .request()
       .input("ticketCode", mssql.VarChar, ticketCode)
       .input("title", mssql.VarChar, title)
-      .input("employee", mssql.VarChar, employee)
       .input("description", mssql.Text, description)
+      .input("employee", mssql.VarChar, req.user.fullname)
       .input("priority", mssql.VarChar, priority)
-      .input("date", mssql.Date, new Date(date))
-      .input("createdBy", mssql.VarChar, req.user.username)
-      .input("status", mssql.VarChar, status)
+      .input("date", mssql.Date, new Date())
+      .input("createdBy", mssql.VarChar, req.user.fullname)
+      .input("status", mssql.VarChar, status || 'Open')
       .query(
-        "INSERT INTO Tickets (TicketCode, Title, Description, Employee, Priority, Date, CreatedBy, Status) VALUES (@ticketCode, @title, @description, @employee, @priority, @date, @createdBy, @status)"
+        `INSERT INTO Tickets (TicketCode, Title, Description, Employee, Priority, Date, CreatedBy, Status) 
+         VALUES (@ticketCode, @title, @description, @employee, @priority, @date, @createdBy, @status)`
       );
 
     if (result.rowsAffected.length > 0) {
-      // Return the created ticket data including the ticketCode
       res.status(201).json({ 
         message: "Ticket created successfully",
         ticket: {
           ticketCode,
           title,
-          employee,
           description,
+          employee: req.user.fullname,
           priority,
-          date,
-          createdBy: req.user.username,
-          status
+          date: new Date(),
+          createdBy: req.user.fullname,
+          status: status || 'Open'
         }
       });
     } else {
@@ -252,27 +293,60 @@ app.post("/api/ticket", authenticateToken, async (req, res) => {
 // New endpoint to create a comment for a ticket
 app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res) => {
   const { ticketCode } = req.params;
-  const { commentText, commentedBy } = req.body;
+  const { commentText } = req.body;
 
-  // Validate that the commenter is either the ticket owner or an admin
+  if (!commentText) {
+    return res.status(400).json({ error: "Comment text is required" });
+  }
+
+  // Debug logging
+  console.log("User from token:", req.user);
+  console.log("Comment request body:", req.body);
+
   try {
     const connection = await pool.connect();
     
-    // First check if the user is authorized to comment on this ticket
+    // Get user's fullname from database
+    const userResult = await connection
+      .request()
+      .input("userId", mssql.Int, req.user.id)
+      .query("SELECT Fullname FROM Users WHERE UserID = @userId");
+
+    if (userResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Unable to process comment at this time" });
+    }
+
+    const userFullname = userResult.recordset[0].Fullname;
+    
+    // First check if the ticket exists and get creator
     const ticketResult = await connection
       .request()
       .input("ticketCode", mssql.VarChar, ticketCode)
-      .query("SELECT CreatedBy FROM Tickets WHERE TicketCode = @ticketCode");
+      .query("SELECT CreatedBy, Employee FROM Tickets WHERE TicketCode = @ticketCode");
 
     if (ticketResult.recordset.length === 0) {
-      return res.status(404).json({ error: "Ticket not found" });
+      return res.status(400).json({ error: "Ticket not found" });
     }
 
     const ticket = ticketResult.recordset[0];
     
-    // Only allow comments if user is admin or the ticket creator
-    if (req.user.role !== 'admin' && req.user.username !== ticket.CreatedBy) {
-      return res.status(403).json({ error: "Not authorized to comment on this ticket" });
+    // Debug logging for authorization
+    console.log("Authorization check:", {
+      userRole: req.user.role,
+      userFullname: userFullname,
+      ticketCreatedBy: ticket.CreatedBy,
+      ticketEmployee: ticket.Employee
+    });
+    
+    // Case-insensitive comparison for names
+    const isCreator = userFullname.toLowerCase() === ticket.CreatedBy.toLowerCase();
+    const isEmployee = userFullname.toLowerCase() === ticket.Employee.toLowerCase();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isAdmin && !isCreator && !isEmployee) {
+      return res.status(400).json({ 
+        error: "Not authorized to comment on this ticket"
+      });
     }
 
     const commentDate = new Date();
@@ -280,8 +354,8 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
     const result = await connection
       .request()
       .input("ticketCode", mssql.VarChar, ticketCode)
-      .input("commentText", mssql.Text, commentText)
-      .input("commentedBy", mssql.VarChar, commentedBy)
+      .input("commentText", mssql.Text, commentText.trim())
+      .input("commentedBy", mssql.VarChar, userFullname)
       .input("commentDate", mssql.DateTime, commentDate)
       .query(
         "INSERT INTO Comments (TicketCode, CommentText, CommentedBy, CommentDate) VALUES (@ticketCode, @commentText, @commentedBy, @commentDate); SELECT SCOPE_IDENTITY() AS commentId;"
@@ -290,14 +364,19 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
     if (result.recordset && result.recordset[0]) {
       res.status(201).json({ 
         message: "Comment added successfully",
-        commentId: result.recordset[0].commentId
+        comment: {
+          id: result.recordset[0].commentId,
+          text: commentText.trim(),
+          commentedBy: userFullname,
+          date: commentDate
+        }
       });
     } else {
-      res.status(500).json({ error: "Failed to add comment" });
+      res.status(400).json({ error: "Failed to add comment" });
     }
   } catch (error) {
     console.error("Error adding comment:", error);
-    res.status(500).json({ error: "Internal server error", details: error.message });
+    res.status(400).json({ error: "Error processing comment" });
   }
 });
 

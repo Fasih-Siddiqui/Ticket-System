@@ -103,13 +103,10 @@ const TicketDetails = ({ params }) => {
         return;
       }
 
-      const commentedBy = userData.role === 'admin' ? 'Support Team' : userData.username;
-
       const response = await axios.post(
         `http://localhost:8081/api/tickets/${ticketCode}/comments`,
         {
-          commentText: newComment,
-          commentedBy: commentedBy
+          commentText: newComment.trim()
         },
         {
           headers: {
@@ -123,10 +120,10 @@ const TicketDetails = ({ params }) => {
         ...prevTicket,
         comments: [
           {
-            CommentID: response.data.commentId,
-            CommentedBy: commentedBy,
-            CommentDate: new Date().toISOString(),
-            CommentText: newComment,
+            CommentID: response.data.comment.id,
+            CommentText: response.data.comment.text,
+            CommentedBy: response.data.comment.commentedBy,
+            CommentDate: response.data.comment.date,
             TicketCode: ticketCode
           },
           ...(prevTicket.comments || [])
@@ -134,12 +131,16 @@ const TicketDetails = ({ params }) => {
       }));
 
       setNewComment("");
+      setError(null); // Clear any previous errors
     } catch (err) {
-      if (err.response?.status === 401 || err.response?.status === 403) {
+      console.error("Comment error:", err);
+      // Only logout for authentication errors
+      if (err.response?.status === 401) {
         localStorage.removeItem('token');
         router.push('/');
       } else {
-        setError("There was an error submitting your comment. Please try again.");
+        // Show the error message from the server or a default message
+        setError(err.response?.data?.error || "There was an error submitting your comment. Please try again.");
       }
     } finally {
       setLoading(false);

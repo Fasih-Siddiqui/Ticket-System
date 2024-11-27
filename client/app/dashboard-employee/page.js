@@ -38,7 +38,6 @@ export default function EmployeeDashboard() {
     title: "",
     description: "",
     priority: "",
-    employee: "",
     date: new Date().toISOString().split('T')[0],
     status: "Open"
   });
@@ -111,8 +110,8 @@ export default function EmployeeDashboard() {
         return;
       }
 
-      if (!newTicket.title || !newTicket.description || !newTicket.priority || !newTicket.employee) {
-        setError("Please fill in all fields");
+      if (!newTicket.title || !newTicket.description || !newTicket.priority) {
+        setError("Please fill in all required fields");
         return;
       }
 
@@ -122,7 +121,7 @@ export default function EmployeeDashboard() {
           title: newTicket.title,
           description: newTicket.description,
           priority: newTicket.priority,
-          employee: userData.username, // Set employee as current user
+          employee: userData.fullname,
           date: newTicket.date,
           status: newTicket.status
         },
@@ -134,7 +133,13 @@ export default function EmployeeDashboard() {
       );
 
       // Reset form and close modal
-      setNewTicket({ title: "", description: "", priority: "", employee: "", date: new Date().toISOString().split('T')[0], status: "Open" });
+      setNewTicket({
+        title: "",
+        description: "",
+        priority: "",
+        date: new Date().toISOString().split('T')[0],
+        status: "Open"
+      });
       setIsModalOpen(false);
       
       // Refresh tickets list
@@ -144,7 +149,7 @@ export default function EmployeeDashboard() {
         localStorage.removeItem("token");
         router.push("/");
       } else {
-        setError("Failed to create ticket");
+        setError(err.response?.data?.error || "Failed to create ticket");
       }
     }
   };
@@ -182,7 +187,7 @@ export default function EmployeeDashboard() {
           <div>
             <h1 className="text-2xl font-bold">My Tickets</h1>
             {userData && (
-              <p className="text-gray-600">Welcome, {userData.username}</p>
+              <p className="text-gray-600">Welcome, {userData.fullname}</p>
             )}
           </div>
           <Button
@@ -342,17 +347,6 @@ export default function EmployeeDashboard() {
                   <SelectItem value="High">High</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label htmlFor="employee">Employee</Label>
-              <Input
-                id="employee"
-                value={newTicket.employee}
-                onChange={(e) =>
-                  setNewTicket({ ...newTicket, employee: e.target.value })
-                }
-                placeholder="Enter employee name"
-              />
             </div>
           </div>
           <DialogFooter>
