@@ -183,6 +183,58 @@ app.get("/api/tickets", authenticateToken, async (req, res) => {
   }
 });
 
+// Get support user's assigned tickets
+app.get("/api/support-tickets", authenticateToken, async (req, res) => {
+  // Verify user is support
+  if (req.user.role !== 'support') {
+    return res.status(403).json({ error: "Access denied. Support users only." });
+  }
+
+  try {
+    const connection = await pool.connect();
+    console.log("Support user authenticated:", req.user);
+
+    // First check if there are any tickets assigned to this user
+    const checkQuery = await connection
+      .request()
+      .input("username", mssql.VarChar, req.user.username)
+      .query("SELECT COUNT(*) as count FROM Tickets WHERE AssignedTo = @username");
+    
+    console.log("Number of assigned tickets:", checkQuery.recordset[0].count);
+
+    // Get the actual tickets
+    const result = await connection
+      .request()
+      .input("username", mssql.VarChar, req.user.username)
+      .query(`
+        SELECT 
+          TicketCode,
+          Title,
+          Description,
+          Status,
+          Priority,
+          CreatedBy,
+          Date,
+          AssignedTo,
+          Employee
+        FROM Tickets 
+        WHERE AssignedTo = @username 
+        ORDER BY Date DESC
+      `);
+
+    console.log("Query results:", {
+      username: req.user.username,
+      ticketsFound: result.recordset.length,
+      firstTicket: result.recordset[0]
+    });
+
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching support tickets:", error);
+    res.status(500).json({ error: "Failed to fetch tickets", details: error.message });
+  }
+});
+
 // New endpoint to get a single ticket by ticketCode
 app.get("/api/tickets/:ticketCode", authenticateToken, async (req, res) => {
   const { ticketCode } = req.params;
@@ -299,10 +351,6 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
     return res.status(400).json({ error: "Comment text is required" });
   }
 
-  // Debug logging
-  console.log("User from token:", req.user);
-  console.log("Comment request body:", req.body);
-
   try {
     const connection = await pool.connect();
     
@@ -322,7 +370,7 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
     const ticketResult = await connection
       .request()
       .input("ticketCode", mssql.VarChar, ticketCode)
-      .query("SELECT CreatedBy, Employee FROM Tickets WHERE TicketCode = @ticketCode");
+      .query("SELECT CreatedBy, Employee, AssignedTo FROM Tickets WHERE TicketCode = @ticketCode");
 
     if (ticketResult.recordset.length === 0) {
       return res.status(400).json({ error: "Ticket not found" });
@@ -330,27 +378,13 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
 
     const ticket = ticketResult.recordset[0];
     
-    // Debug logging for authorization
-    console.log("Authorization check:", {
-      userRole: req.user.role,
-      userFullname: userFullname,
-      ticketCreatedBy: ticket.CreatedBy,
-      ticketEmployee: ticket.Employee
-    });
-    
-    // Case-insensitive comparison for names
-    const isCreator = userFullname.toLowerCase() === ticket.CreatedBy.toLowerCase();
-    const isEmployee = userFullname.toLowerCase() === ticket.Employee.toLowerCase();
-    const isAdmin = req.user.role === 'admin';
-
-    if (!isAdmin && !isCreator && !isEmployee) {
-      return res.status(400).json({ 
-        error: "Not authorized to comment on this ticket"
-      });
+    // Allow support users assigned to the ticket to comment
+    if (req.user.role === 'support' && ticket.AssignedTo !== req.user.username) {
+      return res.status(403).json({ error: "You can only comment on tickets assigned to you" });
     }
 
+    // Insert the comment
     const commentDate = new Date();
-    
     const result = await connection
       .request()
       .input("ticketCode", mssql.VarChar, ticketCode)
@@ -455,7 +489,108 @@ app.put("/api/tickets/:ticketCode", authenticateToken, async (req, res) => {
   }
 });
 
+// Get support users endpoint
+app.get("/api/support-users", authenticateToken, async (req, res) => {
+  try {
+    const connection = await pool.connect();
+    const result = await connection.request()
+      .query(`SELECT UserId, Username FROM Users WHERE Role = 'Support'`);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching support users:", error);
+    res.status(500).json({ error: "Failed to fetch support users" });
+  }
+});// Assign ticket to support user endpoint
+app.post("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+  const { assignedTo } = req.body;
+
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: "Only administrators can assign tickets" });
+  }
+
+  try {
+    const connection = await pool.connect();
+    const result = await connection.request()
+      .input('ticketCode', mssql.VarChar, ticketCode)
+      .input('assignedTo', mssql.VarChar, assignedTo)
+      .query(`
+        UPDATE Tickets 
+        SET AssignedTo = @assignedTo,
+            Status = CASE 
+              WHEN @assignedTo IS NULL THEN 'Open'
+              WHEN Status = 'Open' THEN 'In Progress'
+              ELSE Status 
+            END,
+            UpdatedDate = GETDATE()
+        WHERE TicketCode = @ticketCode
+      `);
+
+    if (result.rowsAffected[0] > 0) {
+      res.json({ message: assignedTo ? "Ticket assigned successfully" : "Ticket unassigned successfully" });
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error assigning ticket:", error);
+    res.status(500).json({ error: "Failed to assign ticket" });
+  }
+});
+
+// Assign ticket to support user endpoint
+app.post("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+  const { assignedTo } = req.body;  // This will be the username or null
+
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: "Only administrators can assign tickets" });
+  }
+
+  try {
+    const connection = await pool.connect();
+    
+    // If assignedTo is provided, verify it's a valid support user
+    if (assignedTo) {
+      const userCheck = await connection.request()
+        .input('username', mssql.VarChar, assignedTo)
+        .query('SELECT Username FROM Users WHERE Username = @username AND Role = \'support\'');
+      
+      if (userCheck.recordset.length === 0) {
+        return res.status(400).json({ error: "Invalid support user" });
+      }
+    }
+
+    // Update the ticket
+    const result = await connection.request()
+      .input('ticketCode', mssql.VarChar, ticketCode)
+      .input('assignedTo', mssql.VarChar, assignedTo)
+      .query(`
+        UPDATE Tickets 
+        SET AssignedTo = @assignedTo,
+            Status = CASE 
+              WHEN @assignedTo IS NULL THEN 'Open'
+              WHEN Status = 'Open' THEN 'In Progress'
+              ELSE Status 
+            END,
+            UpdatedDate = GETDATE()
+        WHERE TicketCode = @ticketCode
+      `);
+
+    if (result.rowsAffected[0] > 0) {
+      res.json({ message: assignedTo ? "Ticket assigned successfully" : "Ticket unassigned successfully" });
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error assigning ticket:", error);
+    res.status(500).json({ error: "Failed to assign ticket" });
+  }
+});
+
 const PORT = 8081;
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

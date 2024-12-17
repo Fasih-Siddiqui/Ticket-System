@@ -161,6 +161,8 @@ const TicketDetails = ({ params }) => {
       // Check user role and redirect accordingly
       if (userData.role === 'admin') {
         router.push('/dashboard-admin');
+      } else if (userData.role === 'support') {
+        router.push('/dashboard-support');
       } else {
         router.push('/dashboard-employee');
       }
@@ -178,6 +180,8 @@ const TicketDetails = ({ params }) => {
     // Check user role and navigate accordingly
     if (userData.role === 'admin') {
       router.push('/dashboard-admin');
+    } else if (userData.role === 'support') {
+      router.push('/dashboard-support');
     } else {
       router.push('/dashboard-employee');
     }

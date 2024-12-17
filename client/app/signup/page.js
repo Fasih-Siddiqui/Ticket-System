@@ -154,7 +154,7 @@ export default function Signup() {
             >
               <option value="admin">Admin</option>
               <option value="user">User</option>
-              <option value="hr">HR</option>
+              <option value="support">Support</option>
             </select>
           </div>
           <div>

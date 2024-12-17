@@ -66,8 +66,8 @@ export default function Login() {
       // Redirect based on role
       if (role === "admin") {
         router.push("/dashboard-admin");
-      } else if (role == "hr" || role == 'HR') {
-        router.push("/dashboard-hr");
+      } else if (role == "support" || role == 'SUPPORT') {
+        router.push("/dashboard-support");
       } else if (role == "user") {
         router.push("/dashboard-employee");
       } else {

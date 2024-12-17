@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { Edit2, Trash2, RefreshCw, UserPlus, Eye } from "lucide-react";
+import { Edit2, Plus, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -24,16 +27,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function AdminDashboard() {
+export default function EmployeeDashboard() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [ticketToDelete, setTicketToDelete] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [supportUsers, setSupportUsers] = useState([]);
-  const [assigningTicket, setAssigningTicket] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [newTicket, setNewTicket] = useState({
+    title: "",
+    description: "",
+    priority: "",
+    date: new Date().toISOString().split('T')[0],
+    status: "Open"
+  });
   const router = useRouter();
 
   // Calculate ticket counts
@@ -45,19 +52,31 @@ export default function AdminDashboard() {
   const fetchTickets = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:8081/api/tickets", {
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      // Debug: Log the token payload
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      console.log("Token payload:", tokenPayload);
+
+      const response = await axios.get("http://localhost:8081/api/support-tickets", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log("Received tickets:", response.data);
       setTickets(response.data);
       setError(null);
     } catch (err) {
+      console.error("Error fetching tickets:", err.response || err);
       if (err.response?.status === 401 || err.response?.status === 403) {
         localStorage.removeItem("token");
         router.push("/");
       } else {
-        setError("Failed to fetch tickets");
+        setError("Failed to fetch assigned tickets");
       }
     } finally {
       setLoading(false);
@@ -66,63 +85,35 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        
-        // Fetch tickets
-        await fetchTickets();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/");
+      return;
+    }
 
-        // Fetch support users
-        const supportResponse = await axios.get("http://localhost:8081/api/support-users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setSupportUsers(supportResponse.data);
-      } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          localStorage.removeItem("token");
-          router.push("/");
-        } else {
-          setError("Failed to fetch data");
-        }
-      }
-    };
+    // Decode token to get user data
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      setUserData(JSON.parse(jsonPayload));
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      localStorage.removeItem('token');
+      router.push('/');
+      return;
+    }
 
-    fetchData();
-  }, []);
+    fetchTickets();
+  }, [router]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchTickets();
   };
 
-  const handleDelete = async (ticketCode) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8081/api/tickets/${ticketCode}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setDeleteDialogOpen(false);
-      setTicketToDelete(null);
-      await fetchTickets(); // Refresh the tickets list
-    } catch (err) {
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        localStorage.removeItem("token");
-        router.push("/");
-      } else {
-        setError("Failed to delete ticket");
-      }
-    }
-  };
-
-  const confirmDelete = (ticket) => {
-    setTicketToDelete(ticket);
-    setDeleteDialogOpen(true);
-  };
 
   const getStatusColor = (status) => {
     const statusColors = {
@@ -142,32 +133,6 @@ export default function AdminDashboard() {
     return priorityColors[priority] || "bg-gray-500";
   };
 
-  const handleAssignTicket = async (ticketCode, username) => {
-    try {
-      setAssigningTicket(ticketCode);
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `http://localhost:8081/api/tickets/${ticketCode}/assign`,
-        { assignedTo: username === "unassigned" ? null : username },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      await fetchTickets();
-    } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        localStorage.removeItem("token");
-        router.push("/");
-      } else {
-        setError("Failed to assign ticket");
-      }
-    } finally {
-      setAssigningTicket(null);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -181,7 +146,7 @@ export default function AdminDashboard() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            <h1 className="text-2xl font-bold">My Tickets</h1>
             {userData && (
               <p className="text-gray-600">Welcome, {userData.fullname}</p>
             )}
@@ -245,7 +210,7 @@ export default function AdminDashboard() {
 
       <div className="grid gap-4">
         {tickets.map((ticket) => (
-          <Card key={ticket.TicketID} className="w-full hover:shadow-lg transition-shadow duration-200">
+          <Card key={ticket.TicketCode} className="w-full hover:shadow-lg transition-shadow duration-200">
             <CardContent className="p-6">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -270,81 +235,31 @@ export default function AdminDashboard() {
                   <p className="text-sm text-gray-500">
                     Created by: {ticket.CreatedBy}
                   </p>
-                  {ticket.AssignedTo && (
-                    <p className="text-sm text-gray-500">
-                      Assigned to: {ticket.AssignedTo}
-                    </p>
-                  )}
+                  <p className="text-sm text-gray-500">
+                    Created on: {new Date(ticket.Date).toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Select 
-                    onValueChange={(value) => handleAssignTicket(ticket.TicketCode, value)}
-                    value={ticket.AssignedTo || "unassigned"}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <div className="flex items-center gap-2">
-                        <UserPlus className={`h-4 w-4 ${assigningTicket === ticket.TicketCode ? 'animate-spin' : ''}`} />
-                        <span>
-                          {ticket.AssignedTo || "Assign To"}
-                        </span>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unassigned">
-                        Unassigned
-                      </SelectItem>
-                      {supportUsers.map((user) => (
-                        <SelectItem key={user.UserId} value={user.Username}>
-                          {user.Username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <Link href={`/tickets/${ticket.TicketCode}`}>
                     <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      View
+                      <Edit2 className="h-4 w-4" />
+                      View Details
                     </Button>
                   </Link>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    onClick={() => confirmDelete(ticket)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
+        {tickets.length === 0 && (
+          <Card className="w-full">
+            <CardContent className="p-6 text-center">
+              <p className="text-gray-500">No tickets have been assigned to you yet.</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Ticket</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete ticket #{ticketToDelete?.TicketCode}?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => handleDelete(ticketToDelete?.TicketCode)}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
