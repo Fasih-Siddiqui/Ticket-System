@@ -105,9 +105,17 @@ export default function Login() {
           ))}
       </div>
       <div className="bg-white border border-black shadow-lg shadow-blue-700 p-8 rounded-lg w-full max-w-md relative z-10">
-        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
-          i-MS HR Sync
-        </h2>
+        <img 
+          src="/logo.png"
+          alt="i-MS Logo"
+          className="mb-5"
+          />
+
+        {/* <h2 className="text-2xl font-bold mb-6 text-center mt-5"
+        style={{ color: "#145388" }}>
+          Ticket System
+        </h2> */}
+
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="text" className="block text-gray-700">
@@ -135,8 +143,8 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div className="flex items-center justify-between ">
+            <div className="flex items-center mt-8">
               <input
                 id="remember"
                 type="checkbox"
@@ -146,14 +154,14 @@ export default function Login() {
                 Remember me
               </label>
             </div>
-            <a href="#" className="text-sm text-blue-600 hover:underline">
+            <a href="#" className="text-sm text-blue-600 hover:underline mt-8">
               Forgot password?
             </a>
           </div>
           <div className="mt-4">
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-800 duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               Login
             </button>

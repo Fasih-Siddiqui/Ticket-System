@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
 
 const TicketDetails = ({ params }) => {
   const [ticket, setTicket] = useState(null);
@@ -178,7 +179,7 @@ const TicketDetails = ({ params }) => {
 
   const handleBackClick = () => {
     // Check user role and navigate accordingly
-    if (userData.role === 'admin') {
+    if (userData.role === 'amidn') {
       router.push('/dashboard-admin');
     } else if (userData.role === 'support') {
       router.push('/dashboard-support');
@@ -229,14 +230,43 @@ const TicketDetails = ({ params }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      <div className="mb-4 flex justify-between items-center">
-        <Button variant="outline" onClick={handleBackClick} className="mb-4">
-          <X className="h-4 w-4 mr-2" /> Back to Dashboard
+    
+    <div className=" mx-auto bg-gray-100 h-full  space-y-6">
+      <div className="mb-4  justify-between items-center">
+      <header
+        className="flex items-center justify-between px-2 w-full border border-gray-100 rounded-lg mb-3"
+        style={{ backgroundImage: `linear-gradient(to bottom, white 50%, gray 300%)` }}
+      >
+        {/* Logo */}
+        <div className="flex items-center space-x-4">
+         
+        <Image
+          src="/logo.png"
+          className="w-auto h-16 p-2"
+          alt="Dafnia Logo"
+          width={200}
+          height={200}
+        />
+        </div>
+
+        {/* Title */}
+        {userData && (
+              <p className="text-blue-900 font-bold text-2xl">Welcome {userData.fullname}</p>
+            )}
+
+        {/* Logout Button */}
+        <div className="flex items-center space-x-4 h-full">
+         
+          
+          <Button variant="outline" onClick={handleBackClick} className="bg-blue-900 text-white hover:bg-gray-300 font-semibold">
+           Back 
         </Button>
+         
+        </div>
+      </header>
         
         {userData?.role === 'admin' && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 p-4">
             <Button
               variant="outline"
               onClick={() => setEditDialogOpen(true)}
@@ -268,23 +298,23 @@ const TicketDetails = ({ params }) => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       ) : ticket ? (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl font-bold">{ticket.Title}</CardTitle>
+              <CardTitle className="text-2xl font-bold ">{ticket.Title}</CardTitle>
               <div className="flex gap-4 mt-2">
-                <span className="text-sm text-gray-500">#{ticket.TicketCode}</span>
-                <span className={`px-2 py-1 rounded-full text-xs text-white ${
-                  ticket.Status === "Open" ? "bg-yellow-500" :
-                  ticket.Status === "In Progress" ? "bg-blue-500" :
-                  "bg-green-500"
+                <span className="text-sm text-gray-500 mt-2 ">#{ticket.TicketCode}</span>
+                <span className={`px-2 py-1 rounded-full text-xs text-black ${
+                  ticket.Status === "Open" ?  "bg-gray-200 border-2 border-black-700" :
+                  ticket.Status === "In Progress" ? "bg-blue-200 border-2 border-blue-700" :
+                  "bg-gray-200 border-2 border-black-700"
                 }`}>
                   {ticket.Status}
                 </span>
-                <span className={`px-2 py-1 rounded-full text-xs text-white ${
-                  ticket.Priority === "High" ? "bg-red-500" :
-                  ticket.Priority === "Medium" ? "bg-yellow-500" :
-                  "bg-green-500"
+                <span className={`px-2 py-1 rounded-full text-xs text-black ${
+                  ticket.Priority === "High" ?  "bg-red-200 border-2 border-red-700"  :
+                  ticket.Priority === "Medium" ?  "bg-purple-200 border-2 border-purple-700" :
+                   "bg-green-200 border-2 border-green-700"
                 }`}>
                   {ticket.Priority}
                 </span>
@@ -307,16 +337,16 @@ const TicketDetails = ({ params }) => {
 
           {/* Comments Section */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Comments</h2>
+            <h2 className="text-xl font-semibold ml-4">Comments</h2>
             <form onSubmit={handleCommentSubmit} className="space-y-4">
-              <div className="flex gap-4">
+              <div className=" gap-4 ml-4">
                 <Textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Add a comment..."
                   className="flex-1"
                 />
-                <Button type="submit" disabled={loading || !newComment.trim()}>
+                <Button className="bg-blue-900 text-white hover:bg-gray-300 font-semibold float-end mt-4" type="submit" disabled={loading || !newComment.trim()}>
                   Post Comment
                 </Button>
               </div>

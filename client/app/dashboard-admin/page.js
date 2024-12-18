@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { Edit2, Trash2, RefreshCw, UserPlus, Eye } from "lucide-react";
+import { Edit2, Trash2, RefreshCw, UserPlus, Eye, CheckCircle2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -168,6 +168,32 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCloseTicket = async (ticketCode) => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log('Attempting to close ticket:', ticketCode); // Debug log
+
+      const response = await axios.put(
+        `http://localhost:8081/api/tickets/${ticketCode}/close`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log('Close ticket response:', response); // Debug log
+
+      if (response.status === 200) {
+        await fetchTickets(); // Refresh the ticket list
+      }
+    } catch (error) {
+      console.error("Error closing ticket:", error.response || error);
+      setError(error.response?.data?.error || "Failed to close ticket");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -211,12 +237,16 @@ export default function AdminDashboard() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-blue-500 text-white">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Total Tickets</h3>
-            <p className="text-3xl font-bold">{totalTickets}</p>
-          </CardContent>
-        </Card>
+      <Card className="bg-blue-500 text-white hover:shadow-lg hover:cursor-pointer transition-shadow duration-300">
+  <CardContent>
+    <h3 className="text-lg font-semibold mb-2">Total Tickets</h3>
+    <p className="text-3xl font-bold">{totalTickets}</p>
+  </CardContent>
+</Card>
+
+
+
+
         <Card className="bg-yellow-500 text-white">
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold mb-2">Open Tickets</h3>
@@ -315,6 +345,17 @@ export default function AdminDashboard() {
                     <Trash2 className="h-4 w-4" />
                     Delete
                   </Button>
+                  {ticket.Status === "Resolved" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 shadow-md border-2 border-green-200 hover:bg-green-100"
+                      onClick={() => handleCloseTicket(ticket.TicketCode)}
+                    >
+                      <CheckCircle2 className="h-4 w-4" color="#16a34a" />
+                      Close Ticket
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>

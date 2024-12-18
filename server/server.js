@@ -589,6 +589,124 @@ app.post("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) 
   }
 });
 
+// Update ticket status endpoint (for support users)
+app.put("/api/tickets/:ticketCode/status", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+  const { status } = req.body;
+
+  // Check if user is support and assigned to this ticket
+  if (req.user.role !== 'support') {
+    return res.status(403).json({ error: "Only support users can update ticket status" });
+  }
+
+  try {
+    const connection = await pool.connect();
+    
+    // First verify the ticket is assigned to this support user
+    const checkTicket = await connection
+      .request()
+      .input('ticketCode', mssql.VarChar, ticketCode)
+      .input('username', mssql.VarChar, req.user.username)
+      .query('SELECT TicketCode FROM Tickets WHERE TicketCode = @ticketCode AND AssignedTo = @username');
+
+    if (checkTicket.recordset.length === 0) {
+      return res.status(403).json({ error: "You can only update tickets assigned to you" });
+    }
+
+    // Update the ticket status
+    const result = await connection
+      .request()
+      .input('ticketCode', mssql.VarChar, ticketCode)
+      .input('status', mssql.VarChar, status)
+      .input('updatedDate', mssql.DateTime, new Date())
+      .query(`
+        UPDATE Tickets 
+        SET Status = @status,
+            UpdatedDate = @updatedDate
+        WHERE TicketCode = @ticketCode
+      `);
+
+    if (result.rowsAffected[0] > 0) {
+      res.json({ message: "Ticket status updated successfully" });
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error updating ticket status:", error);
+    res.status(500).json({ error: "Failed to update ticket status" });
+  }
+});
+
+// Add new endpoint for support to resolve tickets
+app.put("/api/tickets/:ticketCode/resolve", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+
+  // Verify user is support
+  if (req.user.role !== 'support') {
+    return res.status(403).json({ error: "Only support users can resolve tickets" });
+  }
+
+  try {
+    const connection = await pool.connect();
+    
+    // Verify ticket is assigned to this support user
+    const checkTicket = await connection.request()
+      .input('ticketCode', mssql.VarChar, ticketCode)
+      .input('username', mssql.VarChar, req.user.username)
+      .query('SELECT TicketCode FROM Tickets WHERE TicketCode = @ticketCode AND AssignedTo = @username');
+
+    if (checkTicket.recordset.length === 0) {
+      return res.status(403).json({ error: "You can only resolve tickets assigned to you" });
+    }
+
+    // Update ticket status to Resolved
+    const result = await connection.request()
+      .input('ticketCode', mssql.VarChar, ticketCode)
+      .query(`
+        UPDATE Tickets 
+        SET Status = 'Resolved',
+            UpdatedDate = GETDATE()
+        WHERE TicketCode = @ticketCode
+      `);
+
+    if (result.rowsAffected[0] > 0) {
+      res.json({ message: "Ticket marked as resolved" });
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error resolving ticket:", error);
+    res.status(500).json({ error: "Failed to resolve ticket" });
+  }
+});
+
+app.put("/api/tickets/:ticketCode/close", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+
+  try {
+    const connection = await pool.connect();
+    
+    // Simply update the ticket status to Closed
+    const result = await connection.request()
+      .input('ticketCode', mssql.VarChar, ticketCode)
+      .query(`
+        UPDATE Tickets 
+        SET Status = 'Closed',
+            UpdatedDate = GETDATE()
+        WHERE TicketCode = @ticketCode
+      `);
+
+    if (result.rowsAffected[0] > 0) {
+      res.json({ message: "Ticket closed successfully" });
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    console.error("Error closing ticket:", error);
+    res.status(500).json({ error: "Failed to close ticket" });
+  }
+});
+
 const PORT = 8081;
 
 app.listen(PORT, () => {

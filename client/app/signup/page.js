@@ -97,9 +97,16 @@ export default function Signup() {
           ))}
       </div>
       <div className="bg-white border border-black shadow-lg shadow-blue-700 p-8 rounded-lg w-full max-w-md relative z-10">
-        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
+      <div className="flex flex-col items-center">
+            <img
+              src="/S-logo.png"
+              alt="Logo"
+              className="w-auto h-20  mr-2"
+            />
+        <h2 className="text-3xl font-bold mb-6 text-center text-blue-900 mt-5">
           Signup
         </h2>
+        </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="fullname" className="block text-gray-700">
@@ -170,10 +177,10 @@ export default function Signup() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-800 duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
+            className="w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"          >
             Sign Up
           </button>
           <div className="mt-2 text-center">
