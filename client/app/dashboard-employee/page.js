@@ -13,16 +13,19 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { LucideTicket, LucideTicketPlus, LucideTicketCheck, LucideLoader2, LucideUserCheck, LucideAlertCircle } from 'lucide-react';
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -43,6 +46,8 @@ export default function AdminDashboard() {
   const [inProgressTickets, setInProgressTickets] = useState(0);
   const [resolvedTickets, setResolvedTickets] = useState(0);
   const [closedTickets, setClosedTickets] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTicket, setNewTicket] = useState({ title: '', description: '', priority: 'Low' });
   const router = useRouter();
 
   useEffect(() => {
@@ -221,6 +226,30 @@ export default function AdminDashboard() {
         router.push("/");
       } else {
         setError("Failed to close ticket");
+      }
+    }
+  };
+
+  const handleCreateTicket = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `http://localhost:8081/api/tickets`,
+        newTicket,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      await fetchTickets();
+      setIsModalOpen(false);
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to create ticket");
       }
     }
   };
@@ -422,6 +451,15 @@ export default function AdminDashboard() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <Button 
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Create Ticket</span>
+              </Button>
+              <Button 
                 onClick={() => fetchTickets()}
                 className="flex items-center space-x-1"
               >
@@ -483,22 +521,6 @@ export default function AdminDashboard() {
                     <td className="px-6 py-3 text-sm">{new Date(ticket.Date).toLocaleDateString()}</td>
                     <td className="px-6 py-3 text-sm bg-white">
                       <div className="flex items-center justify-end space-x-2">
-                        <Select 
-                          value={ticket.AssignedTo || "unassigned"}
-                          onValueChange={(value) => handleAssignTicket(ticket.TicketCode, value)}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Assign to..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unassigned">Unassigned</SelectItem>
-                            {supportUsers.map((user) => (
-                              <SelectItem key={user.Username} value={user.Username}>
-                                {user.Username}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -507,16 +529,6 @@ export default function AdminDashboard() {
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-800"
-                          onClick={() => confirmDelete(ticket)}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </Button>
                       </div>
@@ -582,6 +594,67 @@ export default function AdminDashboard() {
               >
                 Delete
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Ticket Modal */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Ticket</DialogTitle>
+              <DialogDescription>
+                Fill in the details below to create a new ticket.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={newTicket.title}
+                  onChange={(e) =>
+                    setNewTicket({ ...newTicket, title: e.target.value })
+                  }
+                  placeholder="Enter ticket title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={newTicket.description}
+                  onChange={(e) =>
+                    setNewTicket({ ...newTicket, description: e.target.value })
+                  }
+                  placeholder="Describe your issue"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={newTicket.priority}
+                  onValueChange={(value) =>
+                    setNewTicket({ ...newTicket, priority: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateTicket}>Create Ticket</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
