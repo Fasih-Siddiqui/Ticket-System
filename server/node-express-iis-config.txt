@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <!-- Default document configuration -->
+        <defaultDocument>
+            <files>
+                
+                <add value="index.js" />
+            </files>
+        </defaultDocument>
+
+        <!-- Directory browsing configuration -->
+        <directoryBrowse enabled="true" />
+
+        <!-- Indicates that this is a Node.js application -->
+        <handlers>
+            <add name="iisnode" path="index.js" verb="*" modules="iisnode"/>
+        </handlers>
+        
+        <!-- URL Rewriting rules to route all requests to server.js -->
+        <rewrite>
+            <rules>
+                <rule name="Node.js Application">
+                    <match url=".*" />
+                    <conditions>
+                        <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+                    </conditions>
+                    <action type="Rewrite" url="index.js"/>
+                </rule>
+            </rules>
+        </rewrite>
+        
+        <!-- IIS Node.js specific configuration -->
+        <iisnode 
+            nodeProcessCountPerApplication="1"
+            maxProcessCountPerApplication="4"
+            maxConcurrentRequestsPerProcess="1024"
+            loggingEnabled="true"
+            logDirectory="iisnode"
+            debuggingEnabled="true"
+            debugHeaderEnabled="true"
+            debuggerPortRange="5058-6058"
+        />
+        
+        <!-- CORS and other headers -->
+        <httpProtocol>
+            <customHeaders>
+                <add name="Access-Control-Allow-Origin" value="http://localhost:3000" />
+                <add name="Access-Control-Allow-Methods" value="GET,POST,PUT,DELETE,OPTIONS" />
+                <add name="Access-Control-Allow-Headers" value="Content-Type, Authorization" />
+                <add name="Access-Control-Allow-Credentials" value="true" />
+            </customHeaders>
+        </httpProtocol>
+        
+        <!-- Security settings -->
+        <security>
+            <requestFiltering>
+                <!-- Increase max allowed content length if needed (default is 30000000 bytes ~30MB) -->
+                <requestLimits maxAllowedContentLength="50000000" />
+            </requestFiltering>
+        </security>
+    </system.webServer>
+    
+    <!-- Environment variables can be set here -->
+    <appSettings>
+        <!-- Example of setting environment variables -->
+        <add key="NODE_ENV" value="production" />
+        <add key="JWT_SECRET" value="your-secret-key-here" />
+        <!-- Add other environment-specific settings -->
+    </appSettings>
+</configuration>

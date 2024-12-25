@@ -116,7 +116,7 @@ export default function EmployeeDashboard() {
       }
 
       await axios.post(
-        "http://localhost:8081/api/ticket",
+        "http://localhost:8081/api/tickets",
         {
           title: newTicket.title,
           description: newTicket.description,

@@ -1,9 +1,33 @@
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables
+const result = dotenv.config({ path: path.join(__dirname, '.env') });
+if (result.error) {
+    console.log('Error loading .env file:', result.error);
+} else {
+    console.log('Environment variables loaded successfully');
+    console.log('Loaded EMAIL_USER:', process.env.EMAIL_USER);
+    console.log('Loaded EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Not set');
+}
+
 import express from "express";
 import cors from "cors";
 import mssql from "mssql";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import { 
+  sendTicketCreationNotification,
+  sendTicketAssignmentNotification,
+  sendTicketResolutionNotification,
+  sendTicketClosureNotification,
+  sendCommentNotification
+} from './utils/emailService.js';
 
 const JWT_SECRET = "your-secret-key"; // In production, use environment variable
 const app = express();
@@ -13,6 +37,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// development config
 
 const config = {
   user: "sa",
@@ -27,6 +53,22 @@ const config = {
     idleTimeoutMillis: 15000,
   },
 };
+
+// final config
+
+// const config = {
+//   user: "sa",
+//   password: "s@dm!n321",
+//   server: "b1sql",
+//   database: "TicketSystem",
+//   port: 1433,
+//   options: { encrypt: false },
+//   pool: {
+//     max: 10,
+//     min: 0,
+//     idleTimeoutMillis: 15000,
+//   },
+// };
 
 const pool = new mssql.ConnectionPool(config);
 
@@ -49,6 +91,60 @@ const authenticateToken = (req, res, next) => {
     res.status(403).json({ error: "Invalid token." });
   }
 };
+
+// Test database connection endpoint
+app.get("/api/test-db", async (req, res) => {
+  try {
+    // Test 1: Basic Connection
+    console.log("Testing database connection...");
+    const connection = await pool.connect();
+    console.log("Database connection successful!");
+
+    // Test 2: Simple Query
+    console.log("Testing simple query...");
+    const testQuery = await connection.request().query('SELECT @@VERSION as version');
+    console.log("Query successful!");
+
+    // Test 3: Table Access
+    console.log("Testing table access...");
+    const tablesQuery = await connection.request()
+      .query(`
+        SELECT TOP 1 * FROM Users;
+        SELECT TOP 1 * FROM Tickets;
+        SELECT TOP 1 * FROM Comments;
+      `);
+    
+    const response = {
+      status: "Success",
+      connection: "Connected successfully to SQL Server",
+      sqlVersion: testQuery.recordset[0].version,
+      tables: {
+        users: tablesQuery.recordsets[0].length > 0 ? "Accessible" : "No records or not accessible",
+        tickets: tablesQuery.recordsets[1].length > 0 ? "Accessible" : "No records or not accessible",
+        comments: tablesQuery.recordsets[2].length > 0 ? "Accessible" : "No records or not accessible"
+      }
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Database test failed:", error);
+    res.status(500).json({
+      status: "Error",
+      message: "Database connection test failed",
+      error: error.message,
+      details: {
+        code: error.code,
+        state: error.state,
+        serverName: error.server,
+        connectionConfig: {
+          server: config.server,
+          database: config.database,
+          port: config.port
+        }
+      }
+    });
+  }
+});
 
 // Existing signup endpoint
 app.post("/api/signup", async (req, res) => {
@@ -294,51 +390,67 @@ app.get("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res)
 });
 
 // Create ticket endpoint
-app.post("/api/ticket", authenticateToken, async (req, res) => {
-  const { title, description, priority, status } = req.body;
-  const ticketCode = uuidv4().slice(0, 8).toUpperCase();
+app.post("/api/tickets", authenticateToken, async (req, res) => {
+  const { title, description, priority } = req.body;
+  const ticketCode = uuidv4();
 
-  if (!title || !description || !priority) {
-    return res.status(400).json({ error: "Please fill in all required fields" });
-  }
+  console.log('Creating ticket:', { title, description, priority });
+  console.log('User:', req.user);
 
   try {
     const connection = await pool.connect();
-    const result = await connection
-      .request()
+
+    // Get user's email
+    const userResult = await connection.request()
+      .input("username", mssql.VarChar, req.user.username)
+      .query("SELECT Email FROM Users WHERE Username = @username");
+
+    console.log('User query result:', userResult.recordset);
+
+    if (userResult.recordset.length === 0) {
+      console.log('User not found');
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userEmail = userResult.recordset[0].Email;
+    console.log('User email:', userEmail);
+
+    const result = await connection.request()
       .input("ticketCode", mssql.VarChar, ticketCode)
       .input("title", mssql.VarChar, title)
-      .input("description", mssql.Text, description)
-      .input("employee", mssql.VarChar, req.user.fullname)
+      .input("description", mssql.VarChar, description)
       .input("priority", mssql.VarChar, priority)
-      .input("date", mssql.Date, new Date())
-      .input("createdBy", mssql.VarChar, req.user.fullname)
-      .input("status", mssql.VarChar, status || 'Open')
-      .query(
-        `INSERT INTO Tickets (TicketCode, Title, Description, Employee, Priority, Date, CreatedBy, Status) 
-         VALUES (@ticketCode, @title, @description, @employee, @priority, @date, @createdBy, @status)`
-      );
+      .input("createdBy", mssql.VarChar, req.user.username)
+      .query(`
+        INSERT INTO Tickets (TicketCode, Title, Description, Priority, Status, CreatedBy, Date, Employee)
+        VALUES (@ticketCode, @title, @description, @priority, 'Open', @createdBy, GETDATE(), @createdBy);
+      `);
 
-    if (result.rowsAffected.length > 0) {
-      res.status(201).json({ 
-        message: "Ticket created successfully",
-        ticket: {
-          ticketCode,
-          title,
-          description,
-          employee: req.user.fullname,
-          priority,
-          date: new Date(),
-          createdBy: req.user.fullname,
-          status: status || 'Open'
+    // Send email notifications
+    try {
+      console.log('Sending email notifications');
+      await sendTicketCreationNotification(
+        { 
+          ticketCode, 
+          title, 
+          description, 
+          priority 
+        },
+        { 
+          username: req.user.username,
+          email: userEmail
         }
-      });
-    } else {
-      res.status(500).json({ error: "Ticket creation failed" });
+      );
+      console.log('Email notifications sent');
+    } catch (emailError) {
+      console.error("Error sending email notification:", emailError);
+      // Continue with the response even if email fails
     }
+
+    res.status(201).json({ message: "Ticket created successfully", ticketCode });
   } catch (error) {
     console.error("Error creating ticket:", error);
-    res.status(500).json({ error: "Internal server error", details: error.message });
+    res.status(500).json({ error: "Error creating ticket" });
   }
 });
 
@@ -353,64 +465,75 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
 
   try {
     const connection = await pool.connect();
-    
-    // Get user's fullname from database
-    const userResult = await connection
-      .request()
-      .input("userId", mssql.Int, req.user.id)
-      .query("SELECT Fullname FROM Users WHERE UserID = @userId");
 
-    if (userResult.recordset.length === 0) {
-      return res.status(400).json({ error: "Unable to process comment at this time" });
-    }
-
-    const userFullname = userResult.recordset[0].Fullname;
-    
-    // First check if the ticket exists and get creator
-    const ticketResult = await connection
-      .request()
+    // Get ticket details and related users
+    const ticketDetails = await connection.request()
       .input("ticketCode", mssql.VarChar, ticketCode)
-      .query("SELECT CreatedBy, Employee, AssignedTo FROM Tickets WHERE TicketCode = @ticketCode");
+      .query(`
+        SELECT 
+          t.Title,
+          t.CreatedBy,
+          t.AssignedTo,
+          c.Email as CreatorEmail,
+          CASE 
+            WHEN a.Email IS NOT NULL THEN a.Email 
+            ELSE NULL 
+          END as AssigneeEmail
+        FROM Tickets t
+        LEFT JOIN Users c ON t.CreatedBy = c.Username
+        LEFT JOIN Users a ON t.AssignedTo = a.Username
+        WHERE t.TicketCode = @ticketCode
+      `);
 
-    if (ticketResult.recordset.length === 0) {
-      return res.status(400).json({ error: "Ticket not found" });
+    if (ticketDetails.recordset.length === 0) {
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
-    const ticket = ticketResult.recordset[0];
-    
-    // Allow support users assigned to the ticket to comment
-    if (req.user.role === 'support' && ticket.AssignedTo !== req.user.username) {
-      return res.status(403).json({ error: "You can only comment on tickets assigned to you" });
-    }
+    const ticket = ticketDetails.recordset[0];
 
     // Insert the comment
-    const commentDate = new Date();
-    const result = await connection
-      .request()
+    await connection.request()
       .input("ticketCode", mssql.VarChar, ticketCode)
-      .input("commentText", mssql.Text, commentText.trim())
-      .input("commentedBy", mssql.VarChar, userFullname)
-      .input("commentDate", mssql.DateTime, commentDate)
-      .query(
-        "INSERT INTO Comments (TicketCode, CommentText, CommentedBy, CommentDate) VALUES (@ticketCode, @commentText, @commentedBy, @commentDate); SELECT SCOPE_IDENTITY() AS commentId;"
-      );
+      .input("commentText", mssql.Text, commentText)
+      .input("commentedBy", mssql.VarChar, req.user.username)
+      .query(`
+        INSERT INTO Comments (TicketCode, CommentText, CommentedBy, CommentedAt)
+        VALUES (@ticketCode, @commentText, @commentedBy, GETDATE())
+      `);
 
-    if (result.recordset && result.recordset[0]) {
-      res.status(201).json({ 
-        message: "Comment added successfully",
-        comment: {
-          id: result.recordset[0].commentId,
-          text: commentText.trim(),
-          commentedBy: userFullname,
-          date: commentDate
-        }
-      });
-    } else {
-      res.status(400).json({ error: "Failed to add comment" });
+    // Prepare list of unique email recipients
+    const recipientEmails = new Set([
+      process.env.ADMIN_EMAIL,  // Admin always gets notified
+      ticket.CreatorEmail      // Ticket creator always gets notified
+    ]);
+
+    // Add assignee email if ticket is assigned
+    if (ticket.AssigneeEmail) {
+      recipientEmails.add(ticket.AssigneeEmail);
     }
+
+    // Remove the commenter's own email to avoid self-notification
+    const commenterEmail = req.user.email;
+    recipientEmails.delete(commenterEmail);
+
+    // Send email notifications
+    await sendCommentNotification(
+      { 
+        ticketCode, 
+        title: ticket.Title,
+        commentText 
+      },
+      { 
+        username: req.user.username,
+        email: req.user.email
+      },
+      Array.from(recipientEmails)
+    );
+
+    res.status(201).json({ message: "Comment added successfully" });
   } catch (error) {
     console.error("Error adding comment:", error);
-    res.status(400).json({ error: "Error processing comment" });
+    res.status(500).json({ error: "Error adding comment" });
   }
 });
 
@@ -425,7 +548,7 @@ app.delete("/api/tickets/:ticketCode", authenticateToken, async (req, res) => {
 
   try {
     const connection = await pool.connect();
-
+    
     // First delete all comments associated with the ticket
     await connection
       .request()
@@ -500,72 +623,45 @@ app.get("/api/support-users", authenticateToken, async (req, res) => {
     console.error("Error fetching support users:", error);
     res.status(500).json({ error: "Failed to fetch support users" });
   }
-});// Assign ticket to support user endpoint
+});
+
+// Assign ticket to support user endpoint (accepts both PUT and POST)
 app.post("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) => {
   const { ticketCode } = req.params;
   const { assignedTo } = req.body;
 
-  // Check if user is admin
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: "Only administrators can assign tickets" });
-  }
-
-  try {
-    const connection = await pool.connect();
-    const result = await connection.request()
-      .input('ticketCode', mssql.VarChar, ticketCode)
-      .input('assignedTo', mssql.VarChar, assignedTo)
-      .query(`
-        UPDATE Tickets 
-        SET AssignedTo = @assignedTo,
-            Status = CASE 
-              WHEN @assignedTo IS NULL THEN 'Open'
-              WHEN Status = 'Open' THEN 'In Progress'
-              ELSE Status 
-            END,
-            UpdatedDate = GETDATE()
-        WHERE TicketCode = @ticketCode
-      `);
-
-    if (result.rowsAffected[0] > 0) {
-      res.json({ message: assignedTo ? "Ticket assigned successfully" : "Ticket unassigned successfully" });
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
-    }
-  } catch (error) {
-    console.error("Error assigning ticket:", error);
-    res.status(500).json({ error: "Failed to assign ticket" });
-  }
-});
-
-// Assign ticket to support user endpoint
-app.post("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) => {
-  const { ticketCode } = req.params;
-  const { assignedTo } = req.body;  // This will be the username or null
+  console.log('Assigning ticket:', { ticketCode, assignedTo });
 
   // Check if user is admin
   if (req.user.role !== 'admin') {
+    console.log('Permission denied: User is not admin', req.user);
     return res.status(403).json({ error: "Only administrators can assign tickets" });
   }
 
   try {
     const connection = await pool.connect();
     
-    // If assignedTo is provided, verify it's a valid support user
-    if (assignedTo) {
-      const userCheck = await connection.request()
-        .input('username', mssql.VarChar, assignedTo)
-        .query('SELECT Username FROM Users WHERE Username = @username AND Role = \'support\'');
-      
-      if (userCheck.recordset.length === 0) {
-        return res.status(400).json({ error: "Invalid support user" });
-      }
+    // Get the assignee's email
+    console.log('Finding support user:', assignedTo);
+    const assigneeResult = await connection.request()
+      .input("username", mssql.VarChar, assignedTo)
+      .query("SELECT * FROM Users WHERE Username = @username");
+    
+    console.log('Assignee query result:', assigneeResult.recordset);
+    
+    if (assigneeResult.recordset.length === 0) {
+      console.log('Support user not found');
+      return res.status(404).json({ error: "Support user not found" });
     }
 
-    // Update the ticket
-    const result = await connection.request()
-      .input('ticketCode', mssql.VarChar, ticketCode)
-      .input('assignedTo', mssql.VarChar, assignedTo)
+    const assigneeEmail = assigneeResult.recordset[0].Email;
+    console.log('Found assignee email:', assigneeEmail);
+
+    // Update ticket assignment
+    console.log('Updating ticket assignment');
+    const updateResult = await connection.request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .input("assignedTo", mssql.VarChar, assignedTo)
       .query(`
         UPDATE Tickets 
         SET AssignedTo = @assignedTo,
@@ -575,17 +671,146 @@ app.post("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) 
               ELSE Status 
             END,
             UpdatedDate = GETDATE()
-        WHERE TicketCode = @ticketCode
+        WHERE TicketCode = @ticketCode;
+
+        SELECT @@ROWCOUNT as affected;
       `);
 
-    if (result.rowsAffected[0] > 0) {
-      res.json({ message: assignedTo ? "Ticket assigned successfully" : "Ticket unassigned successfully" });
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
+    console.log('Update result:', updateResult);
+    
+    if (updateResult.recordset[0].affected === 0) {
+      console.log('Ticket not found');
+      return res.status(404).json({ error: "Ticket not found" });
     }
+
+    // Get ticket details
+    console.log('Getting ticket details');
+    const ticketResult = await connection.request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("SELECT Title FROM Tickets WHERE TicketCode = @ticketCode");
+    
+    console.log('Ticket query result:', ticketResult.recordset);
+    
+    if (ticketResult.recordset.length === 0) {
+      console.log('Ticket details not found');
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const ticket = ticketResult.recordset[0];
+
+    // Send email notifications
+    try {
+      console.log('Sending email notification');
+      await sendTicketAssignmentNotification(
+        { ticketCode, title: ticket.Title },
+        { username: assignedTo, email: assigneeEmail },
+        process.env.ADMIN_EMAIL
+      );
+      console.log('Email notification sent');
+    } catch (emailError) {
+      console.error("Error sending assignment notification:", emailError);
+      // Continue with the response even if email fails
+    }
+
+    console.log('Assignment successful');
+    res.json({ message: "Ticket assigned successfully" });
   } catch (error) {
     console.error("Error assigning ticket:", error);
-    res.status(500).json({ error: "Failed to assign ticket" });
+    res.status(500).json({ error: "Error assigning ticket" });
+  }
+});
+
+app.put("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) => {
+  const { ticketCode } = req.params;
+  const { assignedTo } = req.body;
+
+  console.log('Assigning ticket:', { ticketCode, assignedTo });
+
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    console.log('Permission denied: User is not admin', req.user);
+    return res.status(403).json({ error: "Only administrators can assign tickets" });
+  }
+
+  try {
+    const connection = await pool.connect();
+    
+    // Get the assignee's email
+    console.log('Finding support user:', assignedTo);
+    const assigneeResult = await connection.request()
+      .input("username", mssql.VarChar, assignedTo)
+      .query("SELECT * FROM Users WHERE Username = @username");
+    
+    console.log('Assignee query result:', assigneeResult.recordset);
+    
+    if (assigneeResult.recordset.length === 0) {
+      console.log('Support user not found');
+      return res.status(404).json({ error: "Support user not found" });
+    }
+
+    const assigneeEmail = assigneeResult.recordset[0].Email;
+    console.log('Found assignee email:', assigneeEmail);
+
+    // Update ticket assignment
+    console.log('Updating ticket assignment');
+    const updateResult = await connection.request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .input("assignedTo", mssql.VarChar, assignedTo)
+      .query(`
+        UPDATE Tickets 
+        SET AssignedTo = @assignedTo,
+            Status = CASE 
+              WHEN @assignedTo IS NULL THEN 'Open'
+              WHEN Status = 'Open' THEN 'In Progress'
+              ELSE Status 
+            END,
+            UpdatedDate = GETDATE()
+        WHERE TicketCode = @ticketCode;
+
+        SELECT @@ROWCOUNT as affected;
+      `);
+
+    console.log('Update result:', updateResult);
+    
+    if (updateResult.recordset[0].affected === 0) {
+      console.log('Ticket not found');
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // Get ticket details
+    console.log('Getting ticket details');
+    const ticketResult = await connection.request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query("SELECT Title FROM Tickets WHERE TicketCode = @ticketCode");
+    
+    console.log('Ticket query result:', ticketResult.recordset);
+    
+    if (ticketResult.recordset.length === 0) {
+      console.log('Ticket details not found');
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const ticket = ticketResult.recordset[0];
+
+    // Send email notifications
+    try {
+      console.log('Sending email notification');
+      await sendTicketAssignmentNotification(
+        { ticketCode, title: ticket.Title },
+        { username: assignedTo, email: assigneeEmail },
+        process.env.ADMIN_EMAIL
+      );
+      console.log('Email notification sent');
+    } catch (emailError) {
+      console.error("Error sending assignment notification:", emailError);
+      // Continue with the response even if email fails
+    }
+
+    console.log('Assignment successful');
+    res.json({ message: "Ticket assigned successfully" });
+  } catch (error) {
+    console.error("Error assigning ticket:", error);
+    res.status(500).json({ error: "Error assigning ticket" });
   }
 });
 
@@ -686,8 +911,20 @@ app.put("/api/tickets/:ticketCode/close", authenticateToken, async (req, res) =>
   try {
     const connection = await pool.connect();
     
-    // Simply update the ticket status to Closed
-    const result = await connection.request()
+    // Get ticket and support member details
+    const ticketResult = await connection.request()
+      .input("ticketCode", mssql.VarChar, ticketCode)
+      .query(`
+        SELECT t.Title, t.AssignedTo, u.Email as SupportEmail
+        FROM Tickets t
+        JOIN Users u ON t.AssignedTo = u.Username
+        WHERE t.TicketCode = @ticketCode
+      `);
+    
+    const ticket = ticketResult.recordset[0];
+
+    // Update ticket status
+    await connection.request()
       .input('ticketCode', mssql.VarChar, ticketCode)
       .query(`
         UPDATE Tickets 
@@ -696,11 +933,14 @@ app.put("/api/tickets/:ticketCode/close", authenticateToken, async (req, res) =>
         WHERE TicketCode = @ticketCode
       `);
 
-    if (result.rowsAffected[0] > 0) {
-      res.json({ message: "Ticket closed successfully" });
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
-    }
+    // Send email notifications
+    await sendTicketClosureNotification(
+      { ticketCode, title: ticket.Title },
+      { username: ticket.AssignedTo, email: ticket.SupportEmail },
+      process.env.ADMIN_EMAIL
+    );
+
+    res.json({ message: "Ticket closed successfully" });
   } catch (error) {
     console.error("Error closing ticket:", error);
     res.status(500).json({ error: "Failed to close ticket" });
@@ -711,4 +951,8 @@ const PORT = 8081;
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+app.get('/', (req, res) => {
+  res.send('TicketSystem Server Is Running');
 });
