@@ -60,6 +60,19 @@ export default function AdminDashboard() {
     }
   }, [tickets]);
 
+  // Sort tickets with closed ones at the bottom
+  const sortTickets = (tickets) => {
+    return [...tickets].sort((a, b) => {
+      // If one is closed and the other isn't, put the closed one last
+      if (a.Status === "Closed" && b.Status !== "Closed") return 1;
+      if (a.Status !== "Closed" && b.Status === "Closed") return -1;
+      
+      // For tickets with the same status (both closed or both not closed),
+      // sort by creation date (newest first)
+      return new Date(b.CreatedAt) - new Date(a.CreatedAt);
+    });
+  };
+
   // Filter tickets based on search and status
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = 
@@ -97,7 +110,38 @@ export default function AdminDashboard() {
           Authorization: `Bearer ${token}`,
         },
       });
-      setTickets(response.data);
+
+      const sortedTickets = sortTickets(response.data);
+      setTickets(sortedTickets);
+
+      // Update statistics
+      const stats = response.data.reduce(
+        (acc, ticket) => {
+          acc.total++;
+          switch (ticket.Status) {
+            case "Open":
+              acc.open++;
+              break;
+            case "In Progress":
+              acc.inProgress++;
+              break;
+            case "Resolved":
+              acc.resolved++;
+              break;
+            case "Closed":
+              acc.closed++;
+              break;
+          }
+          return acc;
+        },
+        { total: 0, open: 0, inProgress: 0, resolved: 0, closed: 0 }
+      );
+
+      setTotalTickets(stats.total);
+      setOpenTickets(stats.open);
+      setInProgressTickets(stats.inProgress);
+      setResolvedTickets(stats.resolved);
+      setClosedTickets(stats.closed);
       setError(null);
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
@@ -276,7 +320,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg">
         <div className="mx-2 py-4">
@@ -470,15 +514,6 @@ export default function AdminDashboard() {
                 </svg>
                 <span>Create Ticket</span>
               </Button>
-              <Button 
-                onClick={() => fetchTickets()}
-                className="flex items-center space-x-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Reload</span>
-              </Button>
             </div>
           </div>
 
@@ -670,6 +705,12 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Footer */}
+      <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">
+        <p>&copy; {new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
+      </div>
+    
     </div>
   );
 }
