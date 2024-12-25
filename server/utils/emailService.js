@@ -82,89 +82,284 @@ const sendEmail = async (to, template) => {
 };
 
 // Email templates
+const getStatusColor = (status) => {
+    const colors = {
+        'Open': '#FCD34D',
+        'In Progress': '#60A5FA',
+        'Resolved': '#34D399',
+        'Closed': '#9CA3AF'
+    };
+    return colors[status] || '#9CA3AF';
+}
+
+const getPriorityColor = (priority) => {
+    const colors = {
+        'High': '#EF4444',
+        'Medium': '#F59E0B',
+        'Low': '#10B981'
+    };
+    return colors[priority] || '#9CA3AF';
+}
+
+const baseEmailStyles = `  <style>
+        body { 
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+    background-color: #1E40AF;
+    color: white;
+    padding: 20px;
+    border-radius: 5px 5px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Vertically center align */
+}
+
+.header-left {
+    /* Remove width calculation - let it grow naturally */
+    text-align: center;
+}
+
+.header-right {
+    text-align: right;
+    /* Remove fixed width */
+}.content {
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 0 0 5px 5px;
+        }
+        .ticket-info {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #1E40AF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .divider {
+            border-top: 1px solid #e5e7eb;
+            margin: 20px 0;
+        }
+        .update-message {
+            background-color: #f0f9ff;
+            border-left: 4px solid #1E40AF;
+            padding: 15px;
+            margin: 20px 0;
+        }.badge-container {
+        display: flex;
+        gap: 20px;  /* Increase gap between badges */
+        margin: 15px 0;
+        align-items: center;  /* Align badges vertically */
+        }.badge {
+        padding: 8px 15px;  /* Increase padding for better visibility */
+        border-radius: 4px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        }
+    </style>
+`;
+
+const createTicketEmailTemplate = (ticket, creator) => {
+    // Set default values for missing fields
+    const status = ticket.status || 'New';
+    const date = ticket.date ? new Date(ticket.date).toLocaleDateString() : new Date().toLocaleDateString();
+    
+    return `
+      <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${baseEmailStyles}
+  </head>
+    <body>
+        <div class="container">
+<div class="header">
+    <div class="header-left">
+        <h1>New Ticket Created</h1>
+        <p>Ticket #${ticket.ticketCode}</p>
+        <div class="created-info" style="display: flex; justify-content: space-between; align-items: center;">
+            <p><strong>Created By:</strong> ${creator.username}</p>
+            <p><strong>Created Date:</strong> ${date}</p>
+        </div>
+    </div>
+</div>
+
+            <div class="content">
+                <p>Dear User,</p>
+                
+                <p>A new ticket has been created in the system. Here are the details:</p>
+                
+                <div class="ticket-info">
+                    <h2 style="margin-top: 0;">${ticket.title}</h2>
+                    <p>${ticket.description}</p>
+                    
+                    <div class="badge-container">
+                        <span class="badge" style="background-color: ${getPriorityColor(ticket.priority)}"><strong>Priority: </strong>${ticket.priority}</span>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    
+                </div>
+                
+                
+            </div>
+            
+             <div class="footer">
+                <p>This is an automated message from the Ticketing System.</p>
+                <p>   &copy; ${new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+};
+
+const updateTicketEmailTemplate = (ticket, user, action) => {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${baseEmailStyles}
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Ticket Updated</h1>
+                <p>Ticket #${ticket.TicketCode}</p>
+            </div>
+            
+            <div class="content">
+                <p>Dear ${user.username},</p>
+                
+                <div class="update-message">
+                    <p><strong>Update:</strong> Ticket has been ${action}</p>
+                </div>
+                
+                <div class="ticket-info">
+                    <h2 style="margin-top: 0;">${ticket.Title}</h2>
+                    <p>${ticket.Description}</p>
+                    
+                    <div>
+                        <span class="badge" style="background-color: ${getStatusColor(ticket.Status)}">${ticket.Status}</span>
+                        <span class="badge" style="background-color: ${getPriorityColor(ticket.Priority)}">${ticket.Priority}</span>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <p><strong>Created By:</strong> ${ticket.CreatedBy}</p>
+                    <p><strong>Created Date:</strong> ${new Date(ticket.Date).toLocaleDateString()}</p>
+                    ${ticket.AssignedTo ? `<p><strong>Assigned To:</strong> ${ticket.AssignedTo}</p>` : ''}
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="http://localhost:3000/tickets/${ticket.TicketCode}" class="button">View Ticket</a>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated message from the Ticketing System.</p>
+                <p>   &copy; ${new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+};
+
 const emailTemplates = {
     ticketCreated: (ticket, creator) => ({
-        subject: `New Ticket Created - ${ticket.ticketCode}`,
+        subject: `New Ticket Created - ${ticket.TicketCode}`,
         text: `
             A new ticket has been created:
-            Ticket Code: ${ticket.ticketCode}
-            Title: ${ticket.title}
-            Description: ${ticket.description}
-            Priority: ${ticket.priority}
+            Ticket Code: ${ticket.TicketCode}
+            Title: ${ticket.Title}
+            Description: ${ticket.Description}
+            Priority: ${ticket.Priority}
             Created by: ${creator.username}
         `,
-        html: `
-            <h2>New Ticket Created</h2>
-            <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
-            <p><strong>Title:</strong> ${ticket.title}</p>
-            <p><strong>Description:</strong> ${ticket.description}</p>
-            <p><strong>Priority:</strong> ${ticket.priority}</p>
-            <p><strong>Created by:</strong> ${creator.username}</p>
-        `
+        html: createTicketEmailTemplate(ticket, creator)
     }),
     
     ticketAssigned: (ticket, assignee) => ({
-        subject: `Ticket Assigned - ${ticket.ticketCode}`,
+        subject: `Ticket Assigned - ${ticket.TicketCode}`,
         text: `
             A ticket has been assigned to you:
-            Ticket Code: ${ticket.ticketCode}
-            Title: ${ticket.title}
+            Ticket Code: ${ticket.TicketCode}
+            Title: ${ticket.Title}
             Assigned to: ${assignee.username}
         `,
-        html: `
-            <h2>Ticket Assigned</h2>
-            <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
-            <p><strong>Title:</strong> ${ticket.title}</p>
-            <p><strong>Assigned to:</strong> ${assignee.username}</p>
-        `
+        html: updateTicketEmailTemplate(ticket, assignee, 'assigned')
     }),
     
     ticketResolved: (ticket, supportMember) => ({
-        subject: `Ticket Resolved - ${ticket.ticketCode}`,
+        subject: `Ticket Resolved - ${ticket.TicketCode}`,
         text: `
             A ticket has been resolved:
-            Ticket Code: ${ticket.ticketCode}
-            Title: ${ticket.title}
+            Ticket Code: ${ticket.TicketCode}
+            Title: ${ticket.Title}
             Resolved by: ${supportMember.username}
         `,
-        html: `
-            <h2>Ticket Resolved</h2>
-            <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
-            <p><strong>Title:</strong> ${ticket.title}</p>
-            <p><strong>Resolved by:</strong> ${supportMember.username}</p>
-        `
+        html: updateTicketEmailTemplate(ticket, supportMember, 'resolved')
     }),
     
     ticketClosed: (ticket) => ({
-        subject: `Ticket Closed - ${ticket.ticketCode}`,
+        subject: `Ticket Closed - ${ticket.TicketCode}`,
         text: `
             A ticket has been closed:
-            Ticket Code: ${ticket.ticketCode}
-            Title: ${ticket.title}
+            Ticket Code: ${ticket.TicketCode}
+            Title: ${ticket.Title}
         `,
-        html: `
-            <h2>Ticket Closed</h2>
-            <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
-            <p><strong>Title:</strong> ${ticket.title}</p>
-        `
+        html: updateTicketEmailTemplate(ticket, null, 'closed')
     }),
 
     newComment: (ticket, commenter) => ({
-        subject: `New Comment on Ticket - ${ticket.ticketCode}`,
+        subject: `New Comment on Ticket - ${ticket.TicketCode}`,
         text: `
             A new comment has been added to the ticket:
-            Ticket Code: ${ticket.ticketCode}
-            Title: ${ticket.title}
+            Ticket Code: ${ticket.TicketCode}
+            Title: ${ticket.Title}
             Comment by: ${commenter.username}
-            Comment: ${ticket.commentText}
+            Comment: ${ticket.CommentText}
         `,
-        html: `
-            <h2>New Comment on Ticket</h2>
-            <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
-            <p><strong>Title:</strong> ${ticket.title}</p>
-            <p><strong>Comment by:</strong> ${commenter.username}</p>
-            <p><strong>Comment:</strong> ${ticket.commentText}</p>
-        `
+        html: updateTicketEmailTemplate(ticket, commenter, 'commented')
     })
 };
 

@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import axios from "axios";
-import { useRouter } from "next/navigation";
-import { Edit2, Plus, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,39 +18,71 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LucideTicket, LucideTicketPlus, LucideTicketCheck, LucideLoader2, LucideUserCheck, LucideAlertCircle } from 'lucide-react';
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 
-export default function EmployeeDashboard() {
+export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
+  const [supportUsers, setSupportUsers] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [assigningTicket, setAssigningTicket] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [newTicket, setNewTicket] = useState({
-    title: "",
-    description: "",
-    priority: "",
-    date: new Date().toISOString().split('T')[0],
-    status: "Open"
-  });
+  const [totalTickets, setTotalTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [inProgressTickets, setInProgressTickets] = useState(0);
+  const [resolvedTickets, setResolvedTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const router = useRouter();
 
-  // Calculate ticket counts
-  const totalTickets = tickets.length;
-  const openTickets = tickets.filter((ticket) => ticket.Status === "Open").length;
-  const inProgressTickets = tickets.filter((ticket) => ticket.Status === "In Progress").length;
-  const closedTickets = tickets.filter((ticket) => ticket.Status === "Closed").length;
+  useEffect(() => {
+    if (tickets) {
+      setTotalTickets(tickets.length);
+      setOpenTickets(tickets.filter((ticket) => ticket.Status === "Open").length);
+      setInProgressTickets(tickets.filter((ticket) => ticket.Status === "In Progress").length);
+      setResolvedTickets(tickets.filter((ticket) => ticket.Status === "Resolved").length);
+      setClosedTickets(tickets.filter((ticket) => ticket.Status === "Closed").length);
+    }
+  }, [tickets]);
+
+  // Filter tickets based on search and status
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesSearch = 
+      ticket.Title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.CreatedBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.TicketCode.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || ticket.Status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredTickets.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
 
   const fetchTickets = async () => {
     try {
@@ -73,103 +108,121 @@ export default function EmployeeDashboard() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-      return;
-    }
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        
+        // Fetch tickets
+        await fetchTickets();
 
-    // Decode token to get user data
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      setUserData(JSON.parse(jsonPayload));
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      localStorage.removeItem('token');
-      router.push('/');
-      return;
-    }
+        // Fetch support users
+        const supportResponse = await axios.get("http://localhost:8081/api/support-users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setSupportUsers(supportResponse.data);
+      } catch (error) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          localStorage.removeItem("token");
+          router.push("/");
+        } else {
+          setError("Failed to fetch data");
+        }
+      }
+    };
 
-    fetchTickets();
-  }, [router]);
+    fetchData();
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchTickets();
   };
 
-  const handleCreateTicket = async () => {
+  const handleDelete = async (ticketCode) => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-        return;
-      }
-
-      if (!newTicket.title || !newTicket.description || !newTicket.priority) {
-        setError("Please fill in all required fields");
-        return;
-      }
-
-      await axios.post(
-        "http://localhost:8081/api/tickets",
-        {
-          title: newTicket.title,
-          description: newTicket.description,
-          priority: newTicket.priority,
-          employee: userData.fullname,
-          date: newTicket.date,
-          status: newTicket.status
+      await axios.delete(`http://localhost:8081/api/tickets/${ticketCode}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
+      });
+      setDeleteDialogOpen(false);
+      setTicketToDelete(null);
+      await fetchTickets(); // Refresh the tickets list
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to delete ticket");
+      }
+    }
+  };
+
+  const confirmDelete = (ticket) => {
+    setTicketToDelete(ticket);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleAssignTicket = async (ticketCode, username) => {
+    try {
+      setAssigningTicket(ticketCode);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `http://localhost:8081/api/tickets/${ticketCode}/assign`,
+        { assignedTo: username === "unassigned" ? null : username },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+      await fetchTickets();
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to assign ticket");
+      }
+    } finally {
+      setAssigningTicket(null);
+    }
+  };
 
-      // Reset form and close modal
-      setNewTicket({
-        title: "",
-        description: "",
-        priority: "",
-        date: new Date().toISOString().split('T')[0],
-        status: "Open"
-      });
-      setIsModalOpen(false);
+  const handleCloseTicket = async (ticketCode) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `http://localhost:8081/api/tickets/${ticketCode}/status`,
+        { status: "Closed" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       
-      // Refresh tickets list
-      fetchTickets();
+      // Update the ticket status in the local state
+      setTickets((prevTickets) =>
+        prevTickets.map((ticket) =>
+          ticket.TicketCode === ticketCode
+            ? { ...ticket, Status: "Closed" }
+            : ticket
+        )
+      );
+      
+      setError(null);
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
         localStorage.removeItem("token");
         router.push("/");
       } else {
-        setError(err.response?.data?.error || "Failed to create ticket");
+        setError("Failed to close ticket");
       }
     }
-  };
-
-  const getStatusColor = (status) => {
-    const statusColors = {
-      Open: "bg-yellow-500",
-      "In Progress": "bg-blue-500",
-      Closed: "bg-green-500",
-    };
-    return statusColors[status] || "bg-gray-500";
-  };
-
-  const getPriorityColor = (priority) => {
-    const priorityColors = {
-      Low: "bg-green-500",
-      Medium: "bg-yellow-500",
-      High: "bg-red-500",
-    };
-    return priorityColors[priority] || "bg-gray-500";
   };
 
   if (loading) {
@@ -181,182 +234,358 @@ export default function EmployeeDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">My Tickets</h1>
-            {userData && (
-              <p className="text-gray-600">Welcome, {userData.fullname}</p>
-            )}
+    <div className="min-h-screen bg-gray-100">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg">
+        <div className="mx-2 py-4">
+          <div className="grid grid-cols-3 items-center">
+            <div className="flex items-center ml-1">
+              <Image
+                src="/logo.png"
+                alt="i-MSConsulting Logo"
+                width={220}
+                height={200}
+                priority
+                className="p-0 m-0"
+              />
+            </div>
+            <div className="flex flex-col items-center justify-center">
+              <h1 className="text-2xl font-bold text-white text-center">Welcome To Ticket System</h1>
+              {userData && (
+                <p className="mt-1 text-sm text-gray-200">
+                  Welcome, {userData.fullname}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  router.push("/");
+                }}
+                className="bg-white hover:bg-gray-100 text-gray-600 font-semibold"
+              >
+                Logout
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleRefresh}
-            className={refreshing ? "animate-spin" : ""}
-            disabled={refreshing}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
-        <div className="flex gap-4">
-          <Button
-            variant="default"
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create Ticket
-          </Button>
-          <Button
-            variant="outline"
+      </div>
+
+      {/* Main Content */}
+      <div className="mx-4 py-8">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+          <Card 
+            className="bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
             onClick={() => {
-              localStorage.removeItem("token");
-              router.push("/");
+              setStatusFilter('all');
+              setSearchQuery('');
             }}
           >
-            Logout
-          </Button>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-blue-500 text-white">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Total Tickets</h3>
-            <p className="text-3xl font-bold">{totalTickets}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-yellow-500 text-white">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Open Tickets</h3>
-            <p className="text-3xl font-bold">{openTickets}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-blue-600 text-white">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-2">In Progress</h3>
-            <p className="text-3xl font-bold">{inProgressTickets}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-green-500 text-white">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Closed Tickets</h3>
-            <p className="text-3xl font-bold">{closedTickets}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="grid gap-4">
-        {tickets.map((ticket) => (
-          <Card key={ticket.TicketID} className="w-full hover:shadow-lg transition-shadow duration-200">
             <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-2">
-                    <h3 className="text-lg font-semibold">{ticket.Title}</h3>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs text-white ${getStatusColor(
-                        ticket.Status
-                      )}`}
-                    >
-                      {ticket.Status}
-                    </span>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs text-white ${getPriorityColor(
-                        ticket.Priority
-                      )}`}
-                    >
-                      {ticket.Priority}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 mb-2">#{ticket.TicketCode}</p>
-                  <p className="text-sm text-gray-500">
-                    Created on: {new Date(ticket.Date).toLocaleDateString()}
-                  </p>
+              <div className="flex items-center justify-between relative z-10">
+                <div>
+                  <p className="text-sm font-medium text-white">Total Tickets</p>
+                  <p className="text-3xl font-bold text-white mt-2">{totalTickets}</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Link href={`/tickets/${ticket.TicketCode}`}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <Edit2 className="h-4 w-4" />
-                      View Details
-                    </Button>
-                  </Link>
-                </div>
+              </div>
+              <div className="absolute right-0 bottom-0 opacity-10">
+                <LucideTicket className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {/* Create Ticket Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Ticket</DialogTitle>
-            <DialogDescription>
-              Fill in the details below to create a new ticket.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={newTicket.title}
-                onChange={(e) =>
-                  setNewTicket({ ...newTicket, title: e.target.value })
-                }
-                placeholder="Enter ticket title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={newTicket.description}
-                onChange={(e) =>
-                  setNewTicket({ ...newTicket, description: e.target.value })
-                }
-                placeholder="Describe your issue"
-                rows={4}
-              />
-            </div>
-            <div>
-              <Label htmlFor="priority">Priority</Label>
-              <Select
-                value={newTicket.priority}
-                onValueChange={(value) =>
-                  setNewTicket({ ...newTicket, priority: value })
-                }
+          <Card 
+            className="bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+            onClick={() => {
+              setStatusFilter('Open');
+              setSearchQuery('');
+            }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between relative z-10">
+                <div>
+                  <p className="text-sm font-medium text-white">Open</p>
+                  <p className="text-3xl font-bold text-white mt-2">{openTickets}</p>
+                </div>
+              </div>
+              <div className="absolute right-0 bottom-0 opacity-10">
+                <LucideTicketPlus className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+            onClick={() => {
+              setStatusFilter('In Progress');
+              setSearchQuery('');
+            }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between relative z-10">
+                <div>
+                  <p className="text-sm font-medium text-white">In Progress</p>
+                  <p className="text-3xl font-bold text-white mt-2">{inProgressTickets}</p>
+                </div>
+              </div>
+              <div className="absolute right-0 bottom-0 opacity-10">
+                <LucideLoader2 className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="bg-gradient-to-br from-green-500 to-green-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+            onClick={() => {
+              setStatusFilter('Resolved');
+              setSearchQuery('');
+            }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between relative z-10">
+                <div>
+                  <p className="text-sm font-medium text-white">Resolved</p>
+                  <p className="text-3xl font-bold text-white mt-2">{resolvedTickets}</p>
+                </div>
+              </div>
+              <div className="absolute right-0 bottom-0 opacity-10">
+                <LucideTicketCheck className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="bg-gradient-to-br from-gray-500 to-gray-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+            onClick={() => {
+              setStatusFilter('Closed');
+              setSearchQuery('');
+            }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between relative z-10">
+                <div>
+                  <p className="text-sm font-medium text-white">Closed</p>
+                  <p className="text-3xl font-bold text-white mt-2">{closedTickets}</p>
+                </div>
+              </div>
+              <div className="absolute right-0 bottom-0 opacity-10">
+                <LucideAlertCircle className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tickets Table Section */}
+        <div className="bg-white rounded-lg shadow">
+          {/* Table Controls */}
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="flex space-x-2">
+              <Select 
+                defaultValue="10" 
+                onValueChange={handleItemsPerPageChange}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue placeholder="10" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="40">40</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select 
+                value={statusFilter}
+                onValueChange={setStatusFilter}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Open">Open</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Resolved">Resolved</SelectItem>
+                  <SelectItem value="Closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="search"
+                placeholder="Search..."
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button 
+                onClick={() => fetchTickets()}
+                className="flex items-center space-x-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Reload</span>
+              </Button>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateTicket}>Create Ticket</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+          {/* Table */}
+          <div className="overflow-x-auto border rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="w-12 px-6 py-3">
+                    <input type="checkbox" className="rounded border-gray-300" />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Operations</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {currentItems.map((ticket, index) => (
+                  <tr key={ticket.TicketID} className="hover:bg-gray-50">
+                    <td className="px-6 py-3">
+                      <input type="checkbox" className="rounded border-gray-300" />
+                    </td>
+                    <td className="px-6 py-3 text-sm">{indexOfFirstItem + index + 1}</td>
+                    <td className="px-6 py-3 text-sm text-blue-600 hover:text-blue-800">
+                      <Link href={`/tickets/${ticket.TicketCode}`}>
+                        {ticket.Title}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${ticket.Priority === 'High' ? 'bg-red-100 text-red-800' : 
+                          ticket.Priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'}`}>
+                        {ticket.Priority}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${ticket.Status === 'Open' ? 'bg-blue-100 text-blue-800' : 
+                          ticket.Status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                          ticket.Status === 'Resolved' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'}`}>
+                        {ticket.Status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-sm">{ticket.CreatedBy}</td>
+                    <td className="px-6 py-3 text-sm">{new Date(ticket.Date).toLocaleDateString()}</td>
+                    <td className="px-6 py-3 text-sm bg-white">
+                      <div className="flex items-center justify-end space-x-2">
+                        <Select 
+                          value={ticket.AssignedTo || "unassigned"}
+                          onValueChange={(value) => handleAssignTicket(ticket.TicketCode, value)}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Assign to..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            {supportUsers.map((user) => (
+                              <SelectItem key={user.Username} value={user.Username}>
+                                {user.Username}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-800"
+                          onClick={() => router.push(`/tickets/${ticket.TicketCode}`)}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-800"
+                          onClick={() => confirmDelete(ticket)}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center text-sm text-gray-500">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              {[...Array(totalPages)].map((_, index) => (
+                <Button
+                  key={index + 1}
+                  variant={currentPage === index + 1 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </Button>
+              ))}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Ticket</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete the ticket.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleDelete(ticketToDelete?.TicketCode)}
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

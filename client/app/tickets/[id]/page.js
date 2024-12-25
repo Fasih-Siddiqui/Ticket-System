@@ -228,51 +228,51 @@ const TicketDetails = ({ params }) => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    router.push('/');
+  };
+
   return (
-    
-    <div className=" mx-auto bg-gray-100 h-full  space-y-6">
-      <div className="mb-4  justify-between items-center">
-      <header
-        className="flex items-center justify-between px-2 w-full border border-gray-100 rounded-lg mb-3"
-        style={{ backgroundImage: `linear-gradient(to bottom, white 50%, gray 300%)` }}
-      >
-        {/* Logo */}
-        <div className="flex items-center space-x-4">
-         
-        <Image
-          src="/logo.png"
-          className="w-auto h-16 p-2"
-          alt="Dafnia Logo"
-          width={200}
-          height={200}
-        />
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg">
+        <div className="w-full py-4">
+          <div className="flex items-center justify-between px-4">
+            <div className="flex items-center">
+              <Image src="/logo.png" alt="Logo" width={220} height={60} priority className="mr-4" />
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                className="bg-white hover:bg-gray-100 text-gray-600 font-semibold"
+                onClick={handleBackClick}
+              >
+                Back to Dashboard
+              </Button>
+              <Button
+                variant="outline"
+                className="bg-white hover:bg-gray-100 text-gray-600 font-semibold"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Title */}
-        {userData && (
-              <p className="text-blue-900 font-bold text-2xl">Welcome {userData.fullname}</p>
-            )}
-
-        {/* Logout Button */}
-        <div className="flex items-center space-x-4 h-full">
-         
-          
-          <Button variant="outline" onClick={handleBackClick} className="bg-blue-900 text-white hover:bg-gray-300 font-semibold">
-           Back 
-        </Button>
-         
-        </div>
-      </header>
-        
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         {userData?.role === 'admin' && (
-          <div className="flex gap-2 p-4">
+          <div className="mb-6 flex justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => setEditDialogOpen(true)}
               className="flex items-center gap-2"
             >
               <Edit className="h-4 w-4" />
-              Edit
+              Edit Ticket
             </Button>
             <Button
               variant="destructive"
@@ -280,197 +280,209 @@ const TicketDetails = ({ params }) => {
               className="flex items-center gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              Delete Ticket
             </Button>
           </div>
         )}
-      </div>
 
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      ) : ticket ? (
-        <div className="space-y-6 p-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold ">{ticket.Title}</CardTitle>
-              <div className="flex gap-4 mt-2">
-                <span className="text-sm text-gray-500 mt-2 ">#{ticket.TicketCode}</span>
-                <span className={`px-2 py-1 rounded-full text-xs text-black ${
-                  ticket.Status === "Open" ?  "bg-gray-200 border-2 border-black-700" :
-                  ticket.Status === "In Progress" ? "bg-blue-200 border-2 border-blue-700" :
-                  "bg-gray-200 border-2 border-black-700"
-                }`}>
-                  {ticket.Status}
-                </span>
-                <span className={`px-2 py-1 rounded-full text-xs text-black ${
-                  ticket.Priority === "High" ?  "bg-red-200 border-2 border-red-700"  :
-                  ticket.Priority === "Medium" ?  "bg-purple-200 border-2 border-purple-700" :
-                   "bg-green-200 border-2 border-green-700"
-                }`}>
-                  {ticket.Priority}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 whitespace-pre-wrap mb-4">{ticket.Description}</p>
-              <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>Created: {new Date(ticket.Date).toLocaleDateString()}</span>
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        ) : ticket ? (
+          <div className="space-y-6">
+            <Card className="shadow-lg">
+              <CardHeader className="border-b">
+                <CardTitle className="text-2xl font-bold">{ticket.Title}</CardTitle>
+                <div className="flex gap-4 items-center mt-2">
+                  <span className="text-sm text-gray-500">#{ticket.TicketCode}</span>
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    ${ticket.Status === 'Open' ? 'bg-blue-100 text-blue-800' : 
+                      ticket.Status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                      ticket.Status === 'Resolved' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'}`}>
+                    {ticket.Status}
+                  </span>
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    ${ticket.Priority === 'High' ? 'bg-red-100 text-red-800' : 
+                      ticket.Priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'}`}>
+                    {ticket.Priority}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <MessageCircle className="h-4 w-4" />
-                  <span>Created by: {ticket.CreatedBy}</span>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="prose max-w-none">
+                  <p className="text-gray-700 whitespace-pre-wrap mb-6">{ticket.Description}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex flex-wrap gap-4 text-sm text-gray-500 border-t pt-4">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>Created: {new Date(ticket.Date).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Created by: {ticket.CreatedBy}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Comments Section */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold ml-4">Comments</h2>
-            <form onSubmit={handleCommentSubmit} className="space-y-4">
-              <div className=" gap-4 ml-4">
-                <Textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="flex-1"
-                />
-                <Button className="bg-blue-900 text-white hover:bg-gray-300 font-semibold float-end mt-4" type="submit" disabled={loading || !newComment.trim()}>
-                  Post Comment
-                </Button>
-              </div>
-            </form>
-
+            {/* Comments Section */}
             <div className="space-y-4">
-              {ticket.comments?.map((comment) => (
-                <Card key={comment.CommentID}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-semibold">{comment.CommentedBy}</div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(comment.CommentDate).toLocaleDateString()}
-                      </div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Comments</h2>
+              </div>
+              
+              <Card className="shadow-lg">
+                <CardContent className="pt-6">
+                  <form onSubmit={handleCommentSubmit} className="space-y-4">
+                    <Textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Add a comment..."
+                      className="min-h-[100px]"
+                    />
+                    <div className="flex justify-end">
+                      <Button 
+                        type="submit" 
+                        className="bg-blue-600 text-white hover:bg-blue-700" 
+                        disabled={loading || !newComment.trim()}
+                      >
+                        Post Comment
+                      </Button>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">{comment.CommentText}</p>
-                  </CardContent>
-                </Card>
-              ))}
+                  </form>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4">
+                {ticket.comments?.map((comment) => (
+                  <Card key={comment.CommentID} className="shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-center mb-3 pb-3 border-b">
+                        <div className="font-semibold text-blue-600">{comment.CommentedBy}</div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(comment.CommentDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <p className="text-gray-700 whitespace-pre-wrap">{comment.CommentText}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Ticket not found</AlertDescription>
-        </Alert>
-      )}
+        ) : (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>Ticket not found</AlertDescription>
+          </Alert>
+        )}
 
-      {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Ticket</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={editedTicket?.Title || ""}
-                onChange={(e) =>
-                  setEditedTicket({ ...editedTicket, Title: e.target.value })
-                }
-              />
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Ticket</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={editedTicket?.Title || ""}
+                  onChange={(e) =>
+                    setEditedTicket({ ...editedTicket, Title: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editedTicket?.Description || ""}
+                  onChange={(e) =>
+                    setEditedTicket({
+                      ...editedTicket,
+                      Description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={editedTicket?.Status || ""}
+                  onValueChange={(value) =>
+                    setEditedTicket({ ...editedTicket, Status: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={editedTicket?.Priority || ""}
+                  onValueChange={(value) =>
+                    setEditedTicket({ ...editedTicket, Priority: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={editedTicket?.Description || ""}
-                onChange={(e) =>
-                  setEditedTicket({
-                    ...editedTicket,
-                    Description: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={editedTicket?.Status || ""}
-                onValueChange={(value) =>
-                  setEditedTicket({ ...editedTicket, Status: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Open">Open</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="priority">Priority</Label>
-              <Select
-                value={editedTicket?.Priority || ""}
-                onValueChange={(value) =>
-                  setEditedTicket({ ...editedTicket, Priority: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdate}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdate}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Ticket</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this ticket? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Ticket</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this ticket? This action cannot be
+                undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

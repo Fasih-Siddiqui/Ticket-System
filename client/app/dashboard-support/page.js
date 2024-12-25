@@ -42,13 +42,22 @@ export default function EmployeeDashboard() {
     date: new Date().toISOString().split('T')[0],
     status: "Open"
   }); 
+  const [totalTickets, setTotalTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [inProgressTickets, setInProgressTickets] = useState(0);
+  const [resolvedTickets, setResolvedTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const router = useRouter();
 
-  // Calculate ticket counts
-  const totalTickets = tickets.length;
-  const openTickets = tickets.filter((ticket) => ticket.Status === "Open").length;
-  const inProgressTickets = tickets.filter((ticket) => ticket.Status === "In Progress").length;
-  const closedTickets = tickets.filter((ticket) => ticket.Status === "Closed").length;
+  useEffect(() => {
+    if (tickets) {
+      setTotalTickets(tickets.length);
+      setOpenTickets(tickets.filter(ticket => ticket.Status === 'Open').length);
+      setInProgressTickets(tickets.filter(ticket => ticket.Status === 'In Progress').length);
+      setResolvedTickets(tickets.filter(ticket => ticket.Status === 'Resolved').length);
+      setClosedTickets(tickets.filter(ticket => ticket.Status === 'Closed').length);
+    }
+  }, [tickets]);
 
   const fetchTickets = async () => {
     try {
@@ -243,42 +252,39 @@ export default function EmployeeDashboard() {
       {/* <hr className="w-full border-gray-600" /> */}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 mb-6 justify-items-center">
-        <Card className="bg-gray-100 border-2 w-72 border-purple-500 text-black">
-          <CardContent className="">
-            <h3 className="text-lg font-semibold mb-4 mt-5">Total Tickets</h3>
-            <div className="flex justify-between ">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <Card className="bg-blue-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Total Tickets</h3>
             <p className="text-3xl font-bold">{totalTickets}</p>
-            <LucideTickets size={45} color="#1E3A8A"/>
-            </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-100 border-2 w-72 border-red-500 text-black">
-          <CardContent className="">
-            <h3 className="text-lg font-semibold mb-4 mt-5">Open Tickets</h3>
-            <div className="flex justify-between ">
-              <p className="text-3xl font-bold">{openTickets}</p>
-              <LucideTicketPlus size={45} color="#1E3A8A"/>
-            </div>
-          
+
+        <Card className="bg-yellow-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Open Tickets</h3>
+            <p className="text-3xl font-bold">{openTickets}</p>
           </CardContent>
         </Card>
-        <Card className="bg-gray-100 border-2 w-72 border-blue-500 text-black">
-          <CardContent className="">
-            <h3 className="text-lg font-semibold mb-4 mt-5">In Progress</h3>
-            <div className="flex justify-between ">
+
+        <Card className="bg-orange-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">In Progress</h3>
             <p className="text-3xl font-bold">{inProgressTickets}</p>
-            <LucideTicket size={45} color="#1E3A8A"/> 
-            </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-100 border-2 w-72 border-green-500 text-black">
-          <CardContent className="">
-            <h3 className="text-lg font-semibold mb-4 mt-5">Closed Tickets</h3>
-            <div className="flex justify-between ">
+
+        <Card className="bg-green-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Resolved</h3>
+            <p className="text-3xl font-bold">{resolvedTickets}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Closed</h3>
             <p className="text-3xl font-bold">{closedTickets}</p>
-            <LucideTicketCheck  size={45} color="#1E3A8A"/>
-            </div>
           </CardContent>
         </Card>
       </div>
