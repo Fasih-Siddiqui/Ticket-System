@@ -207,45 +207,58 @@ app.post("/api/login", async (req, res) => {
 
   try {
     const connection = await pool.connect();
+    
+    // First check if username exists
+    const userCheck = await connection
+      .request()
+      .input("username", mssql.VarChar, username)
+      .query("SELECT UserID, Username, Password FROM Users WHERE Username = @username");
+
+    if (userCheck.recordset.length === 0) {
+      return res.status(401).json({ error: "Username does not exist" });
+    }
+
+    // Then check password
+    const user = userCheck.recordset[0];
+    if (user.Password !== password) {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
+
+    // Get full user details for successful login
     const result = await connection
       .request()
       .input("username", mssql.VarChar, username)
-      .input("password", mssql.VarChar, password)
       .query(
-        "SELECT UserID, Username, Fullname, Role FROM Users WHERE Username = @username AND Password = @password"
+        "SELECT UserID, Username, Fullname, Role FROM Users WHERE Username = @username"
       );
 
-    if (result.recordset.length > 0) {
-      const user = result.recordset[0];
-      console.log("User data from DB:", user); // Debug log
+    const userData = result.recordset[0];
+    console.log("User data from DB:", userData);
       
-      const token = jwt.sign(
-        { 
-          id: user.UserID,
-          username: user.Username,
-          fullname: user.Fullname, // Make sure this matches the case from the database
-          role: user.Role.toLowerCase()
-        },
-        JWT_SECRET,
-        { expiresIn: '24h' }
-      );
+    const token = jwt.sign(
+      { 
+        id: userData.UserID,
+        username: userData.Username,
+        fullname: userData.Fullname,
+        role: userData.Role.toLowerCase()
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
 
-      console.log("Generated token payload:", { 
-        id: user.UserID,
-        username: user.Username,
-        fullname: user.Fullname,
-        role: user.Role.toLowerCase()
-      }); // Debug log
+    console.log("Generated token payload:", { 
+      id: userData.UserID,
+      username: userData.Username,
+      fullname: userData.Fullname,
+      role: userData.Role.toLowerCase()
+    });
 
-      res.json({ 
-        token,
-        role: user.Role.toLowerCase(),
-        username: user.Username,
-        fullname: user.Fullname
-      });
-    } else {
-      res.status(401).json({ error: "Invalid credentials" });
-    }
+    res.json({ 
+      token,
+      role: userData.Role.toLowerCase(),
+      username: userData.Username,
+      fullname: userData.Fullname
+    });
   } catch (error) {
     console.error("Error authenticating user:", error);
     res.status(500).json({ error: "Internal server error", details: error.message });
@@ -256,12 +269,24 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/tickets", authenticateToken, async (req, res) => {
   try {
     const connection = await pool.connect();
-    let query = "SELECT * FROM Tickets";
+    let query = `
+      SELECT t.*, 
+             CASE t.Priority
+               WHEN 'High' THEN 1
+               WHEN 'Medium' THEN 2
+               WHEN 'Low' THEN 3
+               ELSE 4
+             END as PriorityOrder
+      FROM Tickets t
+    `;
     
     // If not admin, only show user's tickets
     if (req.user.role !== 'admin') {
-      query += " WHERE CreatedBy = @username";
+      query += " WHERE t.CreatedBy = @username";
     }
+
+    // Add sorting by priority (High first) and date (newest first)
+    query += " ORDER BY PriorityOrder ASC, Date DESC";
 
     const result = await connection
       .request()
@@ -290,44 +315,27 @@ app.get("/api/support-tickets", authenticateToken, async (req, res) => {
     const connection = await pool.connect();
     console.log("Support user authenticated:", req.user);
 
-    // First check if there are any tickets assigned to this user
-    const checkQuery = await connection
-      .request()
-      .input("username", mssql.VarChar, req.user.username)
-      .query("SELECT COUNT(*) as count FROM Tickets WHERE AssignedTo = @username");
-    
-    console.log("Number of assigned tickets:", checkQuery.recordset[0].count);
-
-    // Get the actual tickets
+    // Get the actual tickets with priority and date sorting
     const result = await connection
       .request()
       .input("username", mssql.VarChar, req.user.username)
       .query(`
-        SELECT 
-          TicketCode,
-          Title,
-          Description,
-          Status,
-          Priority,
-          CreatedBy,
-          Date,
-          AssignedTo,
-          Employee
-        FROM Tickets 
-        WHERE AssignedTo = @username 
-        ORDER BY Date DESC
+        SELECT t.*,
+               CASE t.Priority
+                 WHEN 'High' THEN 1
+                 WHEN 'Medium' THEN 2
+                 WHEN 'Low' THEN 3
+                 ELSE 4
+               END as PriorityOrder
+        FROM Tickets t
+        WHERE t.AssignedTo = @username
+        ORDER BY PriorityOrder ASC, Date DESC
       `);
 
-    console.log("Query results:", {
-      username: req.user.username,
-      ticketsFound: result.recordset.length,
-      firstTicket: result.recordset[0]
-    });
-
-    res.json(result.recordset);
+    res.status(200).json(result.recordset);
   } catch (error) {
     console.error("Error fetching support tickets:", error);
-    res.status(500).json({ error: "Failed to fetch tickets", details: error.message });
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
@@ -492,14 +500,21 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
     const ticket = ticketDetails.recordset[0];
 
     // Insert the comment
-    await connection.request()
+    const commentResult = await connection.request()
       .input("ticketCode", mssql.VarChar, ticketCode)
       .input("commentText", mssql.Text, commentText)
       .input("commentedBy", mssql.VarChar, req.user.username)
       .query(`
-        INSERT INTO Comments (TicketCode, CommentText, CommentedBy, CommentedAt)
-        VALUES (@ticketCode, @commentText, @commentedBy, GETDATE())
+        INSERT INTO Comments (TicketCode, CommentText, CommentedBy)
+        OUTPUT 
+          INSERTED.CommentID,
+          INSERTED.CommentText,
+          INSERTED.CommentedBy,
+          INSERTED.TicketCode
+        VALUES (@ticketCode, @commentText, @commentedBy)
       `);
+
+    const newComment = commentResult.recordset[0];
 
     // Prepare list of unique email recipients
     const recipientEmails = new Set([
@@ -530,7 +545,16 @@ app.post("/api/tickets/:ticketCode/comments", authenticateToken, async (req, res
       Array.from(recipientEmails)
     );
 
-    res.status(201).json({ message: "Comment added successfully" });
+    res.status(201).json({ 
+      message: "Comment added successfully",
+      comment: {
+        id: newComment.CommentID,
+        text: newComment.CommentText,
+        commentedBy: newComment.CommentedBy,
+        date: new Date().toISOString(),
+        ticketCode: newComment.TicketCode
+      }
+    });
   } catch (error) {
     console.error("Error adding comment:", error);
     res.status(500).json({ error: "Error adding comment" });
@@ -814,29 +838,53 @@ app.put("/api/tickets/:ticketCode/assign", authenticateToken, async (req, res) =
   }
 });
 
-// Update ticket status endpoint (for support users)
+// Update ticket status endpoint (for support and admin users)
 app.put("/api/tickets/:ticketCode/status", authenticateToken, async (req, res) => {
   const { ticketCode } = req.params;
   const { status } = req.body;
 
-  // Check if user is support and assigned to this ticket
-  if (req.user.role !== 'support') {
-    return res.status(403).json({ error: "Only support users can update ticket status" });
+  // Allow both admin and support users to update status
+  if (req.user.role !== 'support' && req.user.role !== 'admin') {
+    return res.status(403).json({ error: "Only support and admin users can update ticket status" });
   }
 
   try {
     const connection = await pool.connect();
     
-    // First verify the ticket is assigned to this support user
+    // For support users, verify ticket assignment. Admins can update any ticket
+    let ticketQuery = `
+      SELECT t.*, 
+             CASE t.Priority
+               WHEN 'High' THEN 1
+               WHEN 'Medium' THEN 2
+               WHEN 'Low' THEN 3
+               ELSE 4
+             END as PriorityOrder
+      FROM Tickets t
+    `;
+    
+    if (req.user.role === 'support') {
+      ticketQuery += ' WHERE t.AssignedTo = @username';
+    }
+
+    // Add sorting by priority (High first) and date (newest first)
+    ticketQuery += " ORDER BY PriorityOrder ASC, Date DESC";
+
     const checkTicket = await connection
       .request()
       .input('ticketCode', mssql.VarChar, ticketCode)
       .input('username', mssql.VarChar, req.user.username)
-      .query('SELECT TicketCode FROM Tickets WHERE TicketCode = @ticketCode AND AssignedTo = @username');
+      .query(ticketQuery);
 
     if (checkTicket.recordset.length === 0) {
-      return res.status(403).json({ error: "You can only update tickets assigned to you" });
+      return res.status(403).json({ 
+        error: req.user.role === 'support' 
+          ? "You can only update tickets assigned to you" 
+          : "Ticket not found"
+      });
     }
+
+    const ticket = checkTicket.recordset[0];
 
     // Update the ticket status
     const result = await connection
@@ -852,6 +900,46 @@ app.put("/api/tickets/:ticketCode/status", authenticateToken, async (req, res) =
       `);
 
     if (result.rowsAffected[0] > 0) {
+      // Send appropriate email notifications based on the new status
+      try {
+        if (status === 'Resolved') {
+          await sendTicketResolutionNotification(
+            { 
+              ticketCode,
+              title: ticket.Title,
+              status: status
+            },
+            {
+              username: req.user.username,
+              email: ticket.SupportEmail || req.user.email
+            },
+            {
+              username: ticket.CreatedBy,
+              email: ticket.CreatorEmail
+            }
+          );
+        } else if (status === 'Closed') {
+          await sendTicketClosureNotification(
+            {
+              ticketCode,
+              title: ticket.Title,
+              status: status
+            },
+            {
+              username: req.user.username,
+              email: ticket.SupportEmail || req.user.email
+            },
+            {
+              username: ticket.CreatedBy,
+              email: ticket.CreatorEmail
+            }
+          );
+        }
+      } catch (emailError) {
+        console.error("Error sending status update notification:", emailError);
+        // Continue with the response even if email fails
+      }
+
       res.json({ message: "Ticket status updated successfully" });
     } else {
       res.status(404).json({ error: "Ticket not found" });
@@ -915,9 +1003,10 @@ app.put("/api/tickets/:ticketCode/close", authenticateToken, async (req, res) =>
     const ticketResult = await connection.request()
       .input("ticketCode", mssql.VarChar, ticketCode)
       .query(`
-        SELECT t.Title, t.AssignedTo, u.Email as SupportEmail
+        SELECT t.Title, t.AssignedTo, u.Email as SupportEmail, c.Email as CreatorEmail
         FROM Tickets t
         JOIN Users u ON t.AssignedTo = u.Username
+        JOIN Users c ON t.CreatedBy = c.Username
         WHERE t.TicketCode = @ticketCode
       `);
     
@@ -937,7 +1026,7 @@ app.put("/api/tickets/:ticketCode/close", authenticateToken, async (req, res) =>
     await sendTicketClosureNotification(
       { ticketCode, title: ticket.Title },
       { username: ticket.AssignedTo, email: ticket.SupportEmail },
-      process.env.ADMIN_EMAIL
+      { username: ticket.CreatedBy, email: ticket.CreatorEmail }
     );
 
     res.json({ message: "Ticket closed successfully" });

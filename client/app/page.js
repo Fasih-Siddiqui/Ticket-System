@@ -40,14 +40,20 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (username === "" || password === "") {
-      alert("Error: Please fill in both fields");
+    
+    // Client-side validation
+    if (!username.trim()) {
+      setError("Username is required");
+      return;
+    }
+    if (!password.trim()) {
+      setError("Password is required");
       return;
     }
 
     try {
       const response = await axios.post("http://localhost:8081/api/login", {
-        username,
+        username: username.trim(),
         password,
       }, {
         withCredentials: true
@@ -66,18 +72,17 @@ export default function Login() {
       // Redirect based on role
       if (role === "admin") {
         router.push("/dashboard-admin");
-      } else if (role == "support" || role == 'SUPPORT') {
+      } else if (role === "support") {
         router.push("/dashboard-support");
-      } else if (role == "user") {
+      } else if (role === "user") {
         router.push("/dashboard-employee");
       } else {
         console.log("Unknown role:", role);
+        setError("Invalid user role");
       }
     } catch (error) {
       console.error("Login error:", error);
-      setError(
-        error.response?.data?.error || "An error occurred during login"
-      );
+      setError(error.response?.data?.error || "An error occurred during login");
     }
   };
 
@@ -104,78 +109,70 @@ export default function Login() {
             ></div>
           ))}
       </div>
-      <div className="bg-white border border-black shadow-lg shadow-blue-700 p-8 rounded-lg w-full max-w-md relative z-10">
-        <img 
-          src="/logo.png"
-          alt="i-MS Logo"
-          className="mb-5"
-          />
-
-        {/* <h2 className="text-2xl font-bold mb-6 text-center mt-5"
-        style={{ color: "#145388" }}>
-          Ticket System
-        </h2> */}
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
+      <div className="bg-white p-8 rounded-lg shadow-md w-96 relative z-10">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Login
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="text" className="block text-gray-700">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700"
+            >
               Username
             </label>
             <input
-              id="username"
               type="text"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
-              placeholder="Enter your username"
+              id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input
-              id="password"
               type="password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
-              placeholder="Enter your password"
+              id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div className="flex items-center justify-between ">
-            <div className="flex items-center mt-8">
-              <input
-                id="remember"
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-blue-600"
-              />
-              <label htmlFor="remember" className="ml-2 text-gray-700">
-                Remember me
-              </label>
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
             </div>
-            <a href="#" className="text-sm text-blue-600 hover:underline mt-8">
-              Forgot password?
-            </a>
-          </div>
-          <div className="mt-4">
-            <button
-              type="submit"
-              className="w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              Login
-            </button>
-          </div>
-          <div className="mt-2 text-center">
-            <button
-              type="button"
-              onClick={handleSignupRedirect}
-              className="text-sm text-blue-600 hover:underline focus:outline-none"
-            >
-              Create a new account
-            </button>
-          </div>
+          )}
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Sign In
+          </button>
         </form>
+        <div className="mt-4 text-center">
+          <button
+            onClick={handleSignupRedirect}
+            className="text-sm text-blue-600 hover:text-blue-500"
+          >
+            Create an account
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -125,7 +125,7 @@ const TicketDetails = ({ params }) => {
             CommentText: response.data.comment.text,
             CommentedBy: response.data.comment.commentedBy,
             CommentDate: response.data.comment.date,
-            TicketCode: ticketCode
+            TicketCode: response.data.comment.ticketCode
           },
           ...(prevTicket.comments || [])
         ]
@@ -178,10 +178,9 @@ const TicketDetails = ({ params }) => {
   };
 
   const handleBackClick = () => {
-    // Check user role and navigate accordingly
-    if (userData.role === 'amidn') {
+    if (userData?.role === 'admin') {
       router.push('/dashboard-admin');
-    } else if (userData.role === 'support') {
+    } else if (userData?.role === 'support') {
       router.push('/dashboard-support');
     } else {
       router.push('/dashboard-employee');

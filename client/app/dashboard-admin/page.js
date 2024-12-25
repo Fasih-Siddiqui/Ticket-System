@@ -171,26 +171,67 @@ export default function AdminDashboard() {
   const handleCloseTicket = async (ticketCode) => {
     try {
       const token = localStorage.getItem("token");
-      console.log('Attempting to close ticket:', ticketCode); // Debug log
-
-      const response = await axios.put(
-        `http://localhost:8081/api/tickets/${ticketCode}/close`,
-        {},
+      await axios.put(
+        `http://localhost:8081/api/tickets/${ticketCode}/status`,
+        { status: "Closed" },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-
-      console.log('Close ticket response:', response); // Debug log
-
-      if (response.status === 200) {
-        await fetchTickets(); // Refresh the ticket list
+      
+      // Update the ticket status in the local state
+      setTickets((prevTickets) =>
+        prevTickets.map((ticket) =>
+          ticket.TicketCode === ticketCode
+            ? { ...ticket, Status: "Closed" }
+            : ticket
+        )
+      );
+      
+      setError(null);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to close ticket");
       }
-    } catch (error) {
-      console.error("Error closing ticket:", error.response || error);
-      setError(error.response?.data?.error || "Failed to close ticket");
+    }
+  };
+
+  const renderTicketPriority = (priority) => {
+    const priorityColors = {
+      High: 'bg-red-100 text-red-800',
+      Medium: 'bg-yellow-100 text-yellow-800',
+      Low: 'bg-green-100 text-green-800'
+    };
+
+    return (
+      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${priorityColors[priority] || 'bg-gray-100 text-gray-800'}`}>
+        {priority}
+      </span>
+    );
+  };
+
+  const renderTicketDate = (date) => {
+    const ticketDate = new Date(date);
+    const now = new Date();
+    const diffTime = Math.abs(now - ticketDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+      return '1 day ago';
+    } else if (diffDays < 1) {
+      const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+      if (diffHours < 1) {
+        const diffMinutes = Math.ceil(diffTime / (1000 * 60));
+        return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+      }
+      return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    } else {
+      return `${diffDays} days ago`;
     }
   };
 
@@ -237,16 +278,12 @@ export default function AdminDashboard() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card className="bg-blue-500 text-white hover:shadow-lg hover:cursor-pointer transition-shadow duration-300">
-  <CardContent>
-    <h3 className="text-lg font-semibold mb-2">Total Tickets</h3>
-    <p className="text-3xl font-bold">{totalTickets}</p>
-  </CardContent>
-</Card>
-
-
-
-
+      <Card className="bg-blue-500 text-white">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Total Tickets</h3>
+            <p className="text-3xl font-bold">{totalTickets}</p>
+          </CardContent>
+        </Card>
         <Card className="bg-yellow-500 text-white">
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold mb-2">Open Tickets</h3>
@@ -305,6 +342,9 @@ export default function AdminDashboard() {
                       Assigned to: {ticket.AssignedTo}
                     </p>
                   )}
+                  <p className="text-sm text-gray-500">
+                    Created: {new Date(ticket.Date).toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Select 
@@ -312,47 +352,30 @@ export default function AdminDashboard() {
                     value={ticket.AssignedTo || "unassigned"}
                   >
                     <SelectTrigger className="w-[180px]">
-                      <div className="flex items-center gap-2">
-                        <UserPlus className={`h-4 w-4 ${assigningTicket === ticket.TicketCode ? 'animate-spin' : ''}`} />
-                        <span>
-                          {ticket.AssignedTo || "Assign To"}
-                        </span>
-                      </div>
+                      <SelectValue placeholder="Assign to..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="unassigned">
-                        Unassigned
-                      </SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
                       {supportUsers.map((user) => (
-                        <SelectItem key={user.UserId} value={user.Username}>
+                        <SelectItem key={user.Username} value={user.Username}>
                           {user.Username}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Link href={`/tickets/${ticket.TicketCode}`}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      View
-                    </Button>
-                  </Link>
+
                   <Button
-                    variant="destructive"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    onClick={() => confirmDelete(ticket)}
+                    variant="outline"
+                    onClick={() => router.push(`/tickets/${ticket.TicketCode}`)}
                   >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
+                    View Details
                   </Button>
-                  {ticket.Status === "Resolved" && (
+
+                  {ticket.Status === 'Resolved' && (
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 shadow-md border-2 border-green-200 hover:bg-green-100"
+                      variant="destructive"
                       onClick={() => handleCloseTicket(ticket.TicketCode)}
                     >
-                      <CheckCircle2 className="h-4 w-4" color="#16a34a" />
                       Close Ticket
                     </Button>
                   )}

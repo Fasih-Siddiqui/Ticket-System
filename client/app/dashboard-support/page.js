@@ -161,18 +161,32 @@ export default function EmployeeDashboard() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8081/api/tickets/${ticketCode}/resolve`,
-        {},
+        `http://localhost:8081/api/tickets/${ticketCode}/status`,
+        { status: "Resolved" },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      await fetchTickets();
-    } catch (error) {
-      console.error("Error resolving ticket:", error);
-      setError("Failed to resolve ticket");
+      
+      // Update the ticket status in the local state
+      setTickets((prevTickets) =>
+        prevTickets.map((ticket) =>
+          ticket.TicketCode === ticketCode
+            ? { ...ticket, Status: "Resolved" }
+            : ticket
+        )
+      );
+      
+      setError(null);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to resolve ticket");
+      }
     }
   };
 

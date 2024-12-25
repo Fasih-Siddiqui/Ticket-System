@@ -119,19 +119,19 @@ const emailTemplates = {
         `
     }),
     
-    ticketResolved: (ticket, resolver) => ({
+    ticketResolved: (ticket, supportMember) => ({
         subject: `Ticket Resolved - ${ticket.ticketCode}`,
         text: `
             A ticket has been resolved:
             Ticket Code: ${ticket.ticketCode}
             Title: ${ticket.title}
-            Resolved by: ${resolver.username}
+            Resolved by: ${supportMember.username}
         `,
         html: `
             <h2>Ticket Resolved</h2>
             <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
             <p><strong>Title:</strong> ${ticket.title}</p>
-            <p><strong>Resolved by:</strong> ${resolver.username}</p>
+            <p><strong>Resolved by:</strong> ${supportMember.username}</p>
         `
     }),
     
@@ -207,9 +207,9 @@ const sendTicketAssignmentNotification = async (ticket, assignee) => {
     }
 };
 
-const sendTicketResolutionNotification = async (ticket, resolver, creator) => {
-    console.log('Sending ticket resolution notification:', { ticket, resolver, creator });
-    const template = emailTemplates.ticketResolved(ticket, resolver);
+const sendTicketResolutionNotification = async (ticket, supportMember, creator) => {
+    console.log('Sending ticket resolution notification:', { ticket, supportMember, creator });
+    const template = emailTemplates.ticketResolved(ticket, supportMember);
     
     // Send to creator
     if (creator.email) {
@@ -217,10 +217,10 @@ const sendTicketResolutionNotification = async (ticket, resolver, creator) => {
         await sendEmail(creator.email, template);
     }
     
-    // Send to resolver
-    if (resolver.email) {
-        console.log('Sending to resolver:', resolver.email);
-        await sendEmail(resolver.email, template);
+    // Send to support member
+    if (supportMember.email) {
+        console.log('Sending to support member:', supportMember.email);
+        await sendEmail(supportMember.email, template);
     }
     
     // Send to admin
@@ -230,9 +230,15 @@ const sendTicketResolutionNotification = async (ticket, resolver, creator) => {
     }
 };
 
-const sendTicketClosureNotification = async (ticket, supportMember) => {
-    console.log('Sending ticket closure notification:', { ticket, supportMember });
+const sendTicketClosureNotification = async (ticket, supportMember, creator) => {
+    console.log('Sending ticket closure notification:', { ticket, supportMember, creator });
     const template = emailTemplates.ticketClosed(ticket);
+    
+    // Send to creator
+    if (creator.email) {
+        console.log('Sending to creator:', creator.email);
+        await sendEmail(creator.email, template);
+    }
     
     // Send to support member
     if (supportMember.email) {
