@@ -111,6 +111,19 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          router.push("/");
+          return;
+        }
+
+        // Decode token to get user data
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const decodedToken = JSON.parse(jsonPayload);
+        setUserData(decodedToken);
         
         // Fetch tickets
         await fetchTickets();
@@ -250,12 +263,12 @@ export default function AdminDashboard() {
               />
             </div>
             <div className="flex flex-col items-center justify-center">
-              <h1 className="text-2xl font-bold text-white text-center">Welcome To Ticket System</h1>
-              {userData && (
-                <p className="mt-1 text-sm text-gray-200">
-                  Welcome, {userData.fullname}
-                </p>
-              )}
+              <h1 className="text-2xl font-semibold text-gray-100">
+                Welcome {userData?.fullname}
+              </h1>
+              <p className="mt-1 text-sm text-gray-200">
+                Admin Dashboard
+              </p>
             </div>
             <div className="flex justify-end">
               <Button
@@ -509,6 +522,18 @@ export default function AdminDashboard() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </Button>
+                        {ticket.Status !== "Closed" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-600 hover:text-gray-800"
+                            onClick={() => handleCloseTicket(ticket.TicketCode)}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

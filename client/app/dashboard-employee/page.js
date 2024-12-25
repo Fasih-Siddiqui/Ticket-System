@@ -116,6 +116,19 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          router.push("/");
+          return;
+        }
+
+        // Decode token to get user data
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const decodedToken = JSON.parse(jsonPayload);
+        setUserData(decodedToken);
         
         // Fetch tickets
         await fetchTickets();
@@ -279,12 +292,10 @@ export default function AdminDashboard() {
               />
             </div>
             <div className="flex flex-col items-center justify-center">
-              <h1 className="text-2xl font-bold text-white text-center">Welcome To Ticket System</h1>
-              {userData && (
-                <p className="mt-1 text-sm text-gray-200">
-                  Welcome, {userData.fullname}
-                </p>
-              )}
+              <h1 className="text-2xl font-semibold text-gray-100">
+                Welcome {userData?.fullname}
+              </h1>
+              
             </div>
             <div className="flex justify-end">
               <Button
