@@ -31,11 +31,28 @@ import {
 
 const JWT_SECRET = "your-secret-key"; // In production, use environment variable
 const app = express();
+const PORT = process.env.PORT || 9099;
+
+// CORS configuration
 app.use(cors({ 
-  origin: 'http://localhost:3000',
+  origin: 'http://localhost:9083',
   credentials: true
 }));
+
 app.use(express.json());
+
+// Add headers for CORS preflight
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:9083');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(cookieParser());
 
 // development config
@@ -1035,8 +1052,6 @@ app.put("/api/tickets/:ticketCode/close", authenticateToken, async (req, res) =>
     res.status(500).json({ error: "Failed to close ticket" });
   }
 });
-
-const PORT = 8081;
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

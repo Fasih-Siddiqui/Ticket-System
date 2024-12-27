@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import axios from "axios";
+import { API_BASE_URL } from "../../config";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -66,7 +67,7 @@ const TicketDetails = ({ params }) => {
     const fetchTicketDetails = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/tickets/${ticketCode}`,
+          `${API_BASE_URL}/api/tickets/${ticketCode}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -105,7 +106,7 @@ const TicketDetails = ({ params }) => {
       }
 
       const response = await axios.post(
-        `http://localhost:8081/api/tickets/${ticketCode}/comments`,
+        `${API_BASE_URL}/api/tickets/${ticketCode}/comments`,
         {
           commentText: newComment.trim()
         },
@@ -152,7 +153,7 @@ const TicketDetails = ({ params }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `http://localhost:8081/api/tickets/${ticketCode}`,
+        `${API_BASE_URL}/api/tickets/${ticketCode}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -191,7 +192,7 @@ const TicketDetails = ({ params }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:8081/api/tickets/${ticketCode}`,
+        `${API_BASE_URL}/api/tickets/${ticketCode}`,
         {
           title: editedTicket.Title,
           description: editedTicket.Description,
@@ -207,7 +208,7 @@ const TicketDetails = ({ params }) => {
       
       // Fetch updated ticket details
       const response = await axios.get(
-        `http://localhost:8081/api/tickets/${ticketCode}`,
+        `${API_BASE_URL}/api/tickets/${ticketCode}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`

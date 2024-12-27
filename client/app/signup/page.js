@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 export default function Signup() {
   const [fullname, setFullname] = useState("");
@@ -58,7 +59,7 @@ export default function Signup() {
     }
 
     try {
-      const response = await axios.post("http://localhost:8081/api/signup", {
+      const response = await axios.post(`${API_BASE_URL}/api/signup`, {
         fullname: fullname,
         email: email,
         username: username,

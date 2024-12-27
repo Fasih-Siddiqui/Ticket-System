@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import LoginGif from "./components/loginGif";
+import { API_BASE_URL } from "./config";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -52,7 +53,7 @@ export default function Login() {
     }
 
     try {
-      const response = await axios.post("http://localhost:8081/api/login", {
+      const response = await axios.post(`${API_BASE_URL}/api/login`, {
         username: username.trim(),
         password,
       }, {

@@ -290,7 +290,7 @@ const updateTicketEmailTemplate = (ticket, user, action) => {
                 </div>
                 
                 <div style="text-align: center;">
-                    <a href="http://localhost:3000/tickets/${ticket.TicketCode}" class="button">View Ticket</a>
+                    <a href="http://localhost:9083/tickets/${ticket.TicketCode}" class="button">View Ticket</a>
                 </div>
             </div>
             

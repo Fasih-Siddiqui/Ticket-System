@@ -26,6 +26,7 @@ import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { API_BASE_URL } from "../config";
 
 export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -103,7 +104,7 @@ export default function AdminDashboard() {
   const fetchTickets = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:8081/api/tickets", {
+      const response = await axios.get(`${API_BASE_URL}/api/support-tickets`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -175,7 +176,7 @@ export default function AdminDashboard() {
         await fetchTickets();
 
         // Fetch support users
-        const supportResponse = await axios.get("http://localhost:8081/api/support-users", {
+        const supportResponse = await axios.get(`${API_BASE_URL}/api/support-users`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -202,7 +203,7 @@ export default function AdminDashboard() {
   const handleDelete = async (ticketCode) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8081/api/tickets/${ticketCode}`, {
+      await axios.delete(`${API_BASE_URL}/api/tickets/${ticketCode}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -230,7 +231,7 @@ export default function AdminDashboard() {
       setAssigningTicket(ticketCode);
       const token = localStorage.getItem("token");
       await axios.post(
-        `http://localhost:8081/api/tickets/${ticketCode}/assign`,
+        `${API_BASE_URL}/api/tickets/${ticketCode}/assign`,
         { assignedTo: username === "unassigned" ? null : username },
         {
           headers: {
@@ -255,7 +256,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8081/api/tickets/${ticketCode}/status`,
+        `${API_BASE_URL}/api/tickets/${ticketCode}/status`,
         { status: "Closed" },
         {
           headers: {
@@ -288,7 +289,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8081/api/tickets/${ticketCode}/status`,
+        `${API_BASE_URL}/api/tickets/${ticketCode}/status`,
         { status: "Resolved" },
         {
           headers: {

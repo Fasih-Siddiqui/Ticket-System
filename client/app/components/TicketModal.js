@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TfiClose } from "react-icons/tfi";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 const TicketModal = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState("");
@@ -28,7 +29,7 @@ const TicketModal = ({ isOpen, onClose }) => {
         return;
       }
 
-      const response = await axios.post("http://localhost:8081/api/tickets", {
+      const response = await axios.post(`${API_BASE_URL}/api/tickets`, {
         title,
         description,
         priority,
