@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-// Create a transporter using Gmail SMTP
+// Create a transporter using i-msconsulting mail server
 const createTransporter = () => {
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS;
@@ -17,6 +17,8 @@ const createTransporter = () => {
     console.log('Email Configuration in emailService.js:');
     console.log('- USER:', user ? user : 'Not set');
     console.log('- PASS:', pass ? 'Set' : 'Not set');
+    console.log('- HOST:', process.env.SMTP_HOST);
+    console.log('- PORT:', process.env.SMTP_PORT);
 
     if (!user || !pass) {
         console.warn('Email credentials not configured. Check EMAIL_USER and EMAIL_PASS in .env');
@@ -27,9 +29,9 @@ const createTransporter = () => {
     const cleanPass = pass.replace(/\s+/g, '');
 
     const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === 'true',
         auth: {
             user: user,
             pass: cleanPass
@@ -76,7 +78,7 @@ const sendEmail = async (to, template) => {
         console.error('Error sending email:', error);
         // Log more details about the error
         if (error.code === 'EAUTH') {
-            console.error('Authentication failed. Check your Gmail credentials and app password.');
+            console.error('Authentication failed. Check your email credentials and app password.');
         }
     }
 };
@@ -251,8 +253,10 @@ const createTicketEmailTemplate = (ticket, creator) => {
 };
 
 const updateTicketEmailTemplate = (ticket, user, action) => {
+    const date = ticket.date ? new Date(ticket.date).toLocaleDateString() : new Date().toLocaleDateString();
+    
     return `
-    <!DOCTYPE html>
+      <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
@@ -262,41 +266,89 @@ const updateTicketEmailTemplate = (ticket, user, action) => {
     <body>
         <div class="container">
             <div class="header">
-                <h1>Ticket Updated</h1>
-                <p>Ticket #${ticket.TicketCode}</p>
+                <div class="header-left">
+                    <h1>Ticket ${action}</h1>
+                    <p>Ticket #${ticket.ticketCode}</p>
+                    <div class="created-info" style="display: flex; justify-content: space-between; align-items: center;">
+                        <p><strong>${action} By:</strong> ${user ? user.username : 'System'}</p>
+                        <p><strong>Date:</strong> ${date}</p>
+                    </div>
+                </div>
             </div>
             
             <div class="content">
-                <p>Dear ${user.username},</p>
+                <p>Dear User,</p>
                 
-                <div class="update-message">
-                    <p><strong>Update:</strong> Ticket has been ${action}</p>
-                </div>
+                <p>A ticket has been ${action.toLowerCase()} in the system. Here are the details:</p>
                 
                 <div class="ticket-info">
-                    <h2 style="margin-top: 0;">${ticket.Title}</h2>
-                    <p>${ticket.Description}</p>
+                    <h2 style="margin-top: 0;">${ticket.title}</h2>
+                    <p>${ticket.description}</p>
                     
-                    <div>
-                        <span class="badge" style="background-color: ${getStatusColor(ticket.Status)}">${ticket.Status}</span>
-                        <span class="badge" style="background-color: ${getPriorityColor(ticket.Priority)}">${ticket.Priority}</span>
+                    <div class="badge-container">
+                        <span class="badge" style="background-color: ${getStatusColor(ticket.status)}"><strong>Status: </strong>${ticket.status}</span>
+                        <span class="badge" style="background-color: ${getPriorityColor(ticket.priority)}"><strong>Priority: </strong>${ticket.priority}</span>
                     </div>
                     
                     <div class="divider"></div>
                     
-                    <p><strong>Created By:</strong> ${ticket.CreatedBy}</p>
-                    <p><strong>Created Date:</strong> ${new Date(ticket.Date).toLocaleDateString()}</p>
-                    ${ticket.AssignedTo ? `<p><strong>Assigned To:</strong> ${ticket.AssignedTo}</p>` : ''}
-                </div>
-                
-                <div style="text-align: center;">
-                    <a href="http://localhost:9083/tickets/${ticket.TicketCode}" class="button">View Ticket</a>
+                    ${ticket.assignedTo ? `<p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>` : ''}
                 </div>
             </div>
             
             <div class="footer">
                 <p>This is an automated message from the Ticketing System.</p>
-                <p>   &copy; ${new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
+                <p>&copy; ${new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+};
+
+const commentEmailTemplate = (ticket, commenter) => {
+    console.log('Comment Template - Ticket Data:', JSON.stringify(ticket, null, 2));
+    const date = ticket.date ? new Date(ticket.date).toLocaleDateString() : new Date().toLocaleDateString();
+    
+    return `
+      <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${baseEmailStyles}
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="header-left">
+                    <h1>New Comment Added</h1>
+                    <p>Ticket #${ticket.ticketCode}</p>
+                    <div class="created-info" style="display: flex; justify-content: space-between; align-items: center;">
+                        <p><strong>Comment By:</strong> ${commenter.username}</p>
+                        <p><strong>Date:</strong> ${date}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <p>Dear User,</p>
+                
+                <p>A new comment has been added to the ticket. Here are the details:</p>
+                
+                <div class="ticket-info">
+                    <h2 style="margin-top: 0;">${ticket.title}</h2>
+                    
+                    <div class="comment-section" style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; margin: 15px 0;">
+                        <p><strong>New Comment:</strong></p>
+                        <p>${ticket.commentText}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated message from the Ticketing System.</p>
+                <p>&copy; ${new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
             </div>
         </div>
     </body>
@@ -306,60 +358,33 @@ const updateTicketEmailTemplate = (ticket, user, action) => {
 
 const emailTemplates = {
     ticketCreated: (ticket, creator) => ({
-        subject: `New Ticket Created - ${ticket.TicketCode}`,
-        text: `
-            A new ticket has been created:
-            Ticket Code: ${ticket.TicketCode}
-            Title: ${ticket.Title}
-            Description: ${ticket.Description}
-            Priority: ${ticket.Priority}
-            Created by: ${creator.username}
-        `,
+        subject: `New Ticket Created - #${ticket.ticketCode}`,
+        text: `A new ticket has been created: #${ticket.ticketCode}`,
         html: createTicketEmailTemplate(ticket, creator)
     }),
     
     ticketAssigned: (ticket, assignee) => ({
-        subject: `Ticket Assigned - ${ticket.TicketCode}`,
-        text: `
-            A ticket has been assigned to you:
-            Ticket Code: ${ticket.TicketCode}
-            Title: ${ticket.Title}
-            Assigned to: ${assignee.username}
-        `,
-        html: updateTicketEmailTemplate(ticket, assignee, 'assigned')
+        subject: `Ticket Assigned - #${ticket.ticketCode}`,
+        text: `Ticket #${ticket.ticketCode} has been assigned to ${assignee.username}`,
+        html: updateTicketEmailTemplate(ticket, assignee, 'Assigned')
     }),
     
     ticketResolved: (ticket, supportMember) => ({
-        subject: `Ticket Resolved - ${ticket.TicketCode}`,
-        text: `
-            A ticket has been resolved:
-            Ticket Code: ${ticket.TicketCode}
-            Title: ${ticket.Title}
-            Resolved by: ${supportMember.username}
-        `,
-        html: updateTicketEmailTemplate(ticket, supportMember, 'resolved')
+        subject: `Ticket Resolved - #${ticket.ticketCode}`,
+        text: `Ticket #${ticket.ticketCode} has been resolved by ${supportMember.username}`,
+        html: updateTicketEmailTemplate(ticket, supportMember, 'Resolved')
     }),
     
     ticketClosed: (ticket) => ({
-        subject: `Ticket Closed - ${ticket.TicketCode}`,
-        text: `
-            A ticket has been closed:
-            Ticket Code: ${ticket.TicketCode}
-            Title: ${ticket.Title}
-        `,
-        html: updateTicketEmailTemplate(ticket, null, 'closed')
+        subject: `Ticket Closed - #${ticket.ticketCode}`,
+        text: `Ticket #${ticket.ticketCode} has been closed`,
+        html: updateTicketEmailTemplate(ticket, null, 'Closed')
     }),
 
     newComment: (ticket, commenter) => ({
-        subject: `New Comment on Ticket - ${ticket.TicketCode}`,
-        text: `
-            A new comment has been added to the ticket:
-            Ticket Code: ${ticket.TicketCode}
-            Title: ${ticket.Title}
-            Comment by: ${commenter.username}
-            Comment: ${ticket.CommentText}
-        `,
-        html: updateTicketEmailTemplate(ticket, commenter, 'commented')
+        subject: `New Comment on Ticket - #${ticket.ticketCode}`,
+        text: `A new comment has been added to ticket #${ticket.ticketCode} by ${commenter.username}`,
+        html: commentEmailTemplate(ticket, commenter)
     })
 };
 
