@@ -1,0 +1,14 @@
+TS Front End
+set PORT=9090 && npm i && npm run build && pm2 start node --name tickets -- node_modules/next/dist/bin/next start
+
+
+TS Back End
+set PORT=9089 && pm2 start index.js --name ts-server
+
+
+
+Front End IP & PORT
+http://192.168.27.30:9090
+
+Back End & PORT
+http://192.168.27.30:9090
