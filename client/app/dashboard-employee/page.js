@@ -711,7 +711,6 @@ export default function AdminDashboard() {
       <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">
         <p>&copy; {new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
       </div>
-    
     </div>
   );
 }

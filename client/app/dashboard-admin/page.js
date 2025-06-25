@@ -18,11 +18,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";        
+import { Textarea } from "@/components/ui/textarea";   
 import { LucideTicket, LucideTicketPlus, LucideTicketCheck, LucideLoader2, LucideUserCheck, LucideAlertCircle } from 'lucide-react';
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { Label } from "@/components/ui/label";
 import { API_BASE_URL } from "../config";
 
 export default function AdminDashboard() {
@@ -43,7 +46,13 @@ export default function AdminDashboard() {
   const [openTickets, setOpenTickets] = useState(0);
   const [inProgressTickets, setInProgressTickets] = useState(0);
   const [resolvedTickets, setResolvedTickets] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [closedTickets, setClosedTickets] = useState(0);
+  const [newTicket, setNewTicket] = useState({
+    title: "",
+    description: "",
+    priority: "",
+  });  
   const router = useRouter();
 
   useEffect(() => {
@@ -238,6 +247,7 @@ export default function AdminDashboard() {
         }
       );
       await fetchTickets();
+      setIsModalOpen(false);
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         localStorage.removeItem("token");
@@ -279,6 +289,30 @@ export default function AdminDashboard() {
         router.push("/");
       } else {
         setError("Failed to close ticket");
+      }
+    }
+  };
+
+  const handleCreateTicket = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API_BASE_URL}/api/tickets`,
+        newTicket,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      await fetchTickets();
+      setIsModalOpen(false);
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        setError("Failed to create ticket");
       }
     }
   };
@@ -479,6 +513,13 @@ export default function AdminDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md flex items-center space-x-2"
+              >
+                <LucideTicketPlus className="w-4 h-4" />
+              <span>Create Ticket</span>
+              </Button>
             </div>
           </div>
 
@@ -643,6 +684,67 @@ export default function AdminDashboard() {
               >
                 Delete
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      
+      {/* Create Ticket Modal */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Ticket</DialogTitle>
+              <DialogDescription>
+                Fill in the details below to create a new ticket.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={newTicket.title}
+                  onChange={(e) =>
+                    setNewTicket({ ...newTicket, title: e.target.value })
+                  }
+                  placeholder="Enter ticket title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={newTicket.description}
+                  onChange={(e) =>
+                    setNewTicket({ ...newTicket, description: e.target.value })
+                  }
+                  placeholder="Describe your issue"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={newTicket.priority}
+                  onValueChange={(value) =>
+                    setNewTicket({ ...newTicket, priority: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateTicket}>Create Ticket</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
