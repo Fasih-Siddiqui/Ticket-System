@@ -55,12 +55,13 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
-// development config
+
+// fasih config
 
 const config = {
   user: "sa",
   password: "sap123",
-  server: "MUBEEN-LENOVO-L",
+  server: "DESKTOP-EE3UO06",
   database: "TicketSystem",
   port: 1433,
   options: { encrypt: false },
@@ -70,6 +71,23 @@ const config = {
     idleTimeoutMillis: 15000,
   },
 };
+
+
+// Mubeen config
+
+// const config = {
+//   user: "sa",
+//   password: "sap123",
+//   server: "MUBEEN-LENOVO-L",
+//   database: "TicketSystem",
+//   port: 1433,
+//   options: { encrypt: false },
+//   pool: {
+//     max: 10,
+//     min: 0,
+//     idleTimeoutMillis: 15000,
+//   },
+// };
 
 // final config
 
