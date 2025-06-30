@@ -60,6 +60,7 @@ export default function AdminDashboard() {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setDirection] = useState('asc');
   const [activeFilters, setActiveFilters] = useState({});
+  const [columnFilters, setColumnFilters] = useState({});
 
   useEffect(() => {
     if (tickets) {
@@ -109,7 +110,14 @@ export default function AdminDashboard() {
 
       const matchesStatus = statusFilter === 'all' || ticket.Status === statusFilter;
 
-      return matchesSearch && matchesStatus;
+      // Column filters
+      const matchesColumnFilters = Object.entries(columnFilters).every(([field, value]) => {
+        if (!value) return true;
+        const ticketValue = (ticket[field] || '').toString().toLowerCase();
+        return ticketValue.includes(value.toLowerCase());
+      });
+
+      return matchesSearch && matchesStatus && matchesColumnFilters;
     });
   };
 
@@ -576,36 +584,47 @@ export default function AdminDashboard() {
                       key={column.id}
                       className="px-6 py-3"
                     >
-                      <div className="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase">
-                        <span>{column.label}</span>
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={() => handleSort(column.id)}
-                            className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          >
-                            {sortField === column.id ? (
-                              sortDirection === 'asc' ? (
-                                <ArrowUp className="h-3.5 w-3.5 text-blue-500" />
+                      <div className="flex flex-col items-start">
+                        <div className="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase">
+                          <span>{column.label}</span>
+                          <div className="flex items-center gap-1">
+                            <button 
+                              onClick={() => handleSort(column.id)}
+                              className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            >
+                              {sortField === column.id ? (
+                                sortDirection === 'asc' ? (
+                                  <ArrowUp className="h-3.5 w-3.5 text-blue-500" />
+                                ) : (
+                                  <ArrowDown className="h-3.5 w-3.5 text-blue-500" />
+                                )
                               ) : (
-                                <ArrowDown className="h-3.5 w-3.5 text-blue-500" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
-                            )}
-                          </button>
-                          <button 
-                            onClick={() => handleFilter(column.id)}
-                            className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          >
-                            <Filter 
-                              className={`h-3.5 w-3.5 ${
-                                activeFilters?.[column.id] 
-                                  ? 'text-blue-500' 
-                                  : 'text-gray-400'
-                              }`}
-                            />
-                          </button>
+                                <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
+                              )}
+                            </button>
+                            <button 
+                              onClick={() => handleFilter(column.id)}
+                              className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            >
+                              <Filter 
+                                className={`h-3.5 w-3.5 ${
+                                  activeFilters?.[column.id] 
+                                    ? 'text-blue-500' 
+                                    : 'text-gray-400'
+                                }`}
+                              />
+                            </button>
+                          </div>
                         </div>
+                        {activeFilters[column.id] && (
+                          <input
+                            type="text"
+                            className="mt-1 px-2 py-1 border border-gray-300 rounded text-xs w-full"
+                            placeholder={`Filter ${column.label}`}
+                            value={columnFilters[column.id] || ''}
+                            onChange={e => setColumnFilters(filters => ({ ...filters, [column.id]: e.target.value }))}
+                          />
+                        )}
                       </div>
                     </th>
                   ))}
