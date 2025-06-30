@@ -28,7 +28,9 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
-  Filter
+  Filter,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -232,14 +234,17 @@ export default function AdminDashboard() {
   }, []);
 
   const handleRefresh = async () => {
-    console.log("Refresh button clicked!");
     setRefreshing(true);
-    const newTickets = await fetchTickets(); 
+    setSearchQuery("");
+    setStatusFilter("all");
+    setActiveFilters({});
+    setColumnFilters({});
+    setSortField(null);
+    setDirection("asc");
+    const newTickets = await fetchTickets();
     setTickets(newTickets);
-    console.log("Done!");
     setRefreshing(false);
-
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handleDelete = async (ticketCode) => {
@@ -735,32 +740,38 @@ export default function AdminDashboard() {
             <div className="flex items-center text-sm text-gray-500">
               Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
             </div>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-1">
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
+                className={`rounded-full border border-gray-300 bg-white shadow-sm hover:bg-blue-50 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                aria-label="Previous page"
               >
-                Previous
+                <ArrowLeft className="w-4 h-4" />
               </Button>
               {[...Array(totalPages)].map((_, index) => (
                 <Button
                   key={index + 1}
-                  variant={currentPage === index + 1 ? "default" : "outline"}
-                  size="sm"
+                  variant={currentPage === index + 1 ? "default" : "ghost"}
+                  size="icon"
                   onClick={() => handlePageChange(index + 1)}
+                  className={`rounded-full border ${currentPage === index + 1 ? 'bg-blue-600 text-white border-blue-600 shadow' : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'} mx-0.5 transition-colors`}
+                  aria-label={`Page ${index + 1}`}
                 >
                   {index + 1}
                 </Button>
               ))}
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
+                className={`rounded-full border border-gray-300 bg-white shadow-sm hover:bg-blue-50 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                aria-label="Next page"
               >
-                Next
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
