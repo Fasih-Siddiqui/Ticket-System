@@ -405,15 +405,15 @@ export default function AdminDashboard() {
                 />
               </div>
               <div className="flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-semibold text-gray-700">
-                  Welcome {userData?.fullname}
+                <h1 className="text-2xl font-bold text-gray-700 leading-tight font-sans tracking-tight drop-shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
+                  Welcome <span className="font-black text-gray-800">{userData?.fullname}</span>
                 </h1>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-base font-medium text-gray-600 font-sans tracking-normal bg-white/80 px-4 py-1 rounded-lg shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
                   Admin Dashboard
                 </p>
               </div>
               <div className="flex justify-end">
-                <Button
+                {/* <Button
                   onClick={() => {
                     localStorage.removeItem("token");
                     router.push("/");
@@ -421,7 +421,7 @@ export default function AdminDashboard() {
                   className="bg-white hover:bg-gray-100 text-gray-700 font-semibold"
                 >
                   Logout
-                </Button>
+                </Button> */}
               </div>
             </div>
           </div>
