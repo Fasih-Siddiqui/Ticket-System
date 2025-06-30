@@ -569,11 +569,11 @@ export default function AdminDashboard() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="w-12 px-6 py-3">
+                  <th className="w-12 px-6 py-3 text-center align-middle">
                     <input type="checkbox" className="rounded border-gray-300" />
                   </th>
                   {[
-                    { id: 'TicketID', label: 'No' },
+                    { id: 'No', label: 'No' },
                     { id: 'Title', label: 'Title' },
                     { id: 'Priority', label: 'Priority' },
                     { id: 'Status', label: 'Status' },
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
                   ].map((column) => (
                     <th 
                       key={column.id}
-                      className="px-6 py-3"
+                      className="px-6 py-3 text-center align-middle"
                     >
                       <div className="flex flex-col items-start">
                         <div className="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase">
@@ -628,7 +628,7 @@ export default function AdminDashboard() {
                       </div>
                     </th>
                   ))}
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-center align-middle text-xs font-medium text-gray-500 uppercase">
                     Operations
                   </th>
                 </tr>
@@ -636,16 +636,16 @@ export default function AdminDashboard() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentItems.map((ticket, index) => (
                   <tr key={ticket.TicketID} className="hover:bg-gray-50">
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-3 text-center align-middle">
                       <input type="checkbox" className="rounded border-gray-300" />
                     </td>
-                    <td className="px-6 py-3 text-sm">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-6 py-3 text-sm text-blue-600 hover:text-blue-800">
+                    <td className="px-6 py-3 text-sm text-center align-middle">{indexOfFirstItem + index + 1}</td>
+                    <td className="px-6 py-3 text-sm text-blue-600 hover:text-blue-800 text-center align-middle">
                       <Link href={`/tickets/${ticket.TicketCode}`}>
                         {ticket.Title}
                       </Link>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-3 text-center align-middle">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                         ${ticket.Priority === 'High' ? 'bg-red-100 text-red-800' :
                           ticket.Priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
@@ -653,7 +653,7 @@ export default function AdminDashboard() {
                         {ticket.Priority}
                       </span>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-3 text-center align-middle">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                         ${ticket.Status === 'Open' ? 'bg-blue-100 text-blue-800' :
                           ticket.Status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
@@ -662,8 +662,8 @@ export default function AdminDashboard() {
                         {ticket.Status}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-sm">{ticket.CreatedBy}</td>
-                    <td className="px-6 py-3 text-sm">
+                    <td className="px-6 py-3 text-sm text-center align-middle">{ticket.CreatedBy}</td>
+                    <td className="px-6 py-3 text-sm text-center align-middle">
                       {new Date(ticket.Date).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'short',
@@ -673,7 +673,7 @@ export default function AdminDashboard() {
                         hour12: true
                       })}
                     </td>
-                    <td className="px-6 py-3 text-sm bg-white">
+                    <td className="px-6 py-3 text-sm bg-white text-center align-middle">
                       <div className="flex items-center justify-end space-x-2">
                         <Select
                           value={ticket.AssignedTo || "unassigned"}
