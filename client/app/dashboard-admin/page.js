@@ -430,7 +430,7 @@ export default function AdminDashboard() {
         <div className="flex-grow p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
             <Card
-              className="bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+              className="bg-gradient-to-br from-blue-500 to-blue-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
               onClick={() => {
                 setStatusFilter('all');
                 setSearchQuery('');
@@ -450,7 +450,7 @@ export default function AdminDashboard() {
             </Card>
 
             <Card
-              className="bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+              className="bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
               onClick={() => {
                 setStatusFilter('Open');
                 setSearchQuery('');
@@ -470,7 +470,7 @@ export default function AdminDashboard() {
             </Card>
 
             <Card
-              className="bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+              className="bg-gradient-to-br from-orange-500 to-orange-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
               onClick={() => {
                 setStatusFilter('In Progress');
                 setSearchQuery('');
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
             </Card>
 
             <Card
-              className="bg-gradient-to-br from-green-500 to-green-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+              className="bg-gradient-to-br from-green-500 to-green-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
               onClick={() => {
                 setStatusFilter('Resolved');
                 setSearchQuery('');
@@ -510,7 +510,7 @@ export default function AdminDashboard() {
             </Card>
 
             <Card
-              className="bg-gradient-to-br from-gray-500 to-gray-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
+              className="bg-gradient-to-br from-gray-500 to-gray-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
               onClick={() => {
                 setStatusFilter('Closed');
                 setSearchQuery('');
@@ -600,10 +600,10 @@ export default function AdminDashboard() {
                     ].map((column) => (
                       <th 
                         key={column.id}
-                        className="px-6 py-3"
+                        className="px-6 py-3 font-bold"
                       >
                         <div className="flex flex-col items-start">
-                          <div className="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase">
+                          <div className="flex items-center space-x-2 text-xs text-gray-500 uppercase">
                             <span>{column.label}</span>
                             <div className="flex items-center gap-1">
                               <button 
