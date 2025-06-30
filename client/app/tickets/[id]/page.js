@@ -42,6 +42,17 @@ const TicketDetails = ({ params }) => {
   const ticketCode = params.id;
   const router = useRouter();
 
+  const formatDateTime = (date) => {
+    return new Date(date).toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+  
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -325,8 +336,7 @@ const TicketDetails = ({ params }) => {
                 <div className="flex flex-wrap gap-4 text-sm text-gray-500 border-t pt-4">
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span>Created: {new Date(ticket.Date).toLocaleDateString()}</span>
-                  </div>
+                    <span>Created: {formatDateTime(ticket.Date)}</span>                  </div>
                   <div className="flex items-center gap-1">
                     <MessageCircle className="h-4 w-4" />
                     <span>Created by: {ticket.CreatedBy}</span>
@@ -370,8 +380,7 @@ const TicketDetails = ({ params }) => {
                       <div className="flex justify-between items-center mb-3 pb-3 border-b">
                         <div className="font-semibold text-blue-600">{comment.CommentedBy}</div>
                         <div className="text-sm text-gray-500">
-                          {new Date(comment.CommentDate).toLocaleDateString()}
-                        </div>
+                        {formatDateTime(comment.CommentDate)}                        </div>
                       </div>
                       <p className="text-gray-700 whitespace-pre-wrap">{comment.CommentText}</p>
                     </CardContent>

@@ -27,6 +27,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { API_BASE_URL } from "../config";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -67,24 +69,32 @@ export default function AdminDashboard() {
       // If one is closed and the other isn't, put the closed one last
       if (a.Status === "Closed" && b.Status !== "Closed") return 1;
       if (a.Status !== "Closed" && b.Status === "Closed") return -1;
-      
+
       // For tickets with the same status (both closed or both not closed),
       // sort by creation date (newest first)
       return new Date(b.CreatedAt) - new Date(a.CreatedAt);
     });
   };
 
-  // Filter tickets based on search and status
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = 
-      ticket.Title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.CreatedBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.TicketCode.toLowerCase().includes(searchQuery.toLowerCase());
+  // Modified filter function
+  const getFilteredTickets = () => {
+    if (!Array.isArray(tickets)) return [];
     
-    const matchesStatus = statusFilter === 'all' || ticket.Status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+    return tickets.filter(ticket => {
+      const matchesSearch = searchQuery === '' || (
+        (ticket.Title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (ticket.CreatedBy?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (ticket.TicketCode?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+      );
+
+      const matchesStatus = statusFilter === 'all' || ticket.Status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  };
+
+  // Get filtered tickets
+  const filteredTickets = getFilteredTickets();
 
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -112,8 +122,12 @@ export default function AdminDashboard() {
         },
       });
 
-      const sortedTickets = sortTickets(response.data);
+      console.log("Fetched tickets response:", response.data);
+
+      const ticketData = Array.isArray(response.data) ? response.data : [];
+      const sortedTickets = sortTickets(ticketData);
       setTickets(sortedTickets);
+      return sortedTickets;
 
       // Update statistics
       const stats = response.data.reduce(
@@ -169,12 +183,12 @@ export default function AdminDashboard() {
         // Decode token to get user data
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
         const decodedToken = JSON.parse(jsonPayload);
         setUserData(decodedToken);
-        
+
         // Fetch tickets
         await fetchTickets();
 
@@ -199,8 +213,14 @@ export default function AdminDashboard() {
   }, []);
 
   const handleRefresh = async () => {
+    console.log("Refresh button clicked!");
     setRefreshing(true);
-    await fetchTickets();
+    const newTickets = await fetchTickets();
+    setTickets(newTickets);
+    console.log("Done!");
+    setRefreshing(false);
+
+    setCurrentPage(1);
   };
 
   const handleDelete = async (ticketCode) => {
@@ -267,7 +287,7 @@ export default function AdminDashboard() {
           },
         }
       );
-      
+
       // Update the ticket status in the local state
       setTickets((prevTickets) =>
         prevTickets.map((ticket) =>
@@ -276,7 +296,7 @@ export default function AdminDashboard() {
             : ticket
         )
       );
-      
+
       setError(null);
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
@@ -289,6 +309,18 @@ export default function AdminDashboard() {
   };
 
   const handleCreateTicket = async () => {
+    if (!newTicket.title.trim() || !newTicket.description.trim() || !newTicket.priority.trim()) {
+      toast.error("Please fill all required fields.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    
     try {
       const token = localStorage.getItem("token");
       await axios.post(
@@ -302,12 +334,29 @@ export default function AdminDashboard() {
       );
       await fetchTickets();
       setIsModalOpen(false);
+      // Reset form after successful submission
+      setNewTicket({ title: '', description: '', priority: 'Low' });
+      toast.success("Ticket created successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         localStorage.removeItem("token");
         router.push("/");
       } else {
-        setError("Failed to create ticket");
+        toast.error("Failed to create ticket. Please try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     }
   };
@@ -320,8 +369,13 @@ export default function AdminDashboard() {
     );
   }
 
+  console.log("Fetched data:", tickets);
+  console.log("Filtered tickets:", filteredTickets);
+  console.log("Current items:", currentItems);
+
   return (
     <div className="flex flex-col min-h-screen">
+      <ToastContainer />
       {/* Header Section */}
       <div className="bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg">
         <div className="mx-2 py-4">
@@ -340,7 +394,7 @@ export default function AdminDashboard() {
               <h1 className="text-2xl font-semibold text-gray-100">
                 Welcome {userData?.fullname}
               </h1>
-              
+
             </div>
             <div className="flex justify-end">
               <Button
@@ -361,7 +415,7 @@ export default function AdminDashboard() {
       <div className="mx-4 py-8">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-          <Card 
+          <Card
             className="bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
             onClick={() => {
               setStatusFilter('all');
@@ -381,7 +435,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
             onClick={() => {
               setStatusFilter('Open');
@@ -401,7 +455,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
             onClick={() => {
               setStatusFilter('In Progress');
@@ -421,7 +475,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="bg-gradient-to-br from-green-500 to-green-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
             onClick={() => {
               setStatusFilter('Resolved');
@@ -441,7 +495,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="bg-gradient-to-br from-gray-500 to-gray-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden"
             onClick={() => {
               setStatusFilter('Closed');
@@ -467,8 +521,8 @@ export default function AdminDashboard() {
           {/* Table Controls */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <div className="flex space-x-2">
-              <Select 
-                defaultValue="10" 
+              <Select
+                defaultValue="10"
                 onValueChange={handleItemsPerPageChange}
               >
                 <SelectTrigger className="w-[100px]">
@@ -482,7 +536,7 @@ export default function AdminDashboard() {
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
-              <Select 
+              <Select
                 value={statusFilter}
                 onValueChange={setStatusFilter}
               >
@@ -497,6 +551,14 @@ export default function AdminDashboard() {
                   <SelectItem value="Closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Button
+                onClick={handleRefresh}
+                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+              >
+                Refresh
+              </Button>
+
             </div>
             <div className="flex items-center space-x-2">
               <input
@@ -506,7 +568,7 @@ export default function AdminDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Button 
+              <Button
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
               >
@@ -549,18 +611,18 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-6 py-3">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${ticket.Priority === 'High' ? 'bg-red-100 text-red-800' : 
+                        ${ticket.Priority === 'High' ? 'bg-red-100 text-red-800' :
                           ticket.Priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'}`}>
+                            'bg-green-100 text-green-800'}`}>
                         {ticket.Priority}
                       </span>
                     </td>
                     <td className="px-6 py-3">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${ticket.Status === 'Open' ? 'bg-blue-100 text-blue-800' : 
+                        ${ticket.Status === 'Open' ? 'bg-blue-100 text-blue-800' :
                           ticket.Status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
-                          ticket.Status === 'Resolved' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'}`}>
+                            ticket.Status === 'Resolved' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'}`}>
                         {ticket.Status}
                       </span>
                     </td>
@@ -592,8 +654,8 @@ export default function AdminDashboard() {
               Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
             </div>
             <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
@@ -610,8 +672,8 @@ export default function AdminDashboard() {
                   {index + 1}
                 </Button>
               ))}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -711,7 +773,7 @@ export default function AdminDashboard() {
       <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">
         <p>&copy; {new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
       </div>
-    
+      
     </div>
   );
 }

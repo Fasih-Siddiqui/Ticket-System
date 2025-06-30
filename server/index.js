@@ -58,19 +58,19 @@ app.use(cookieParser());
 
 // fasih config
 
-const config = {
-  user: "sa",
-  password: "sap123",
-  server: "DESKTOP-EE3UO06",
-  database: "TicketSystem",
-  port: 1433,
-  options: { encrypt: false },
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 15000,
-  },
-};
+// const config = {
+//   user: "sa",
+//   password: "sap123",
+//   server: "DESKTOP-EE3UO06",
+//   database: "TicketSystem",
+//   port: 1433,
+//   options: { encrypt: false },
+//   pool: {
+//     max: 10,
+//     min: 0,
+//     idleTimeoutMillis: 15000,
+//   },
+// };
 
 
 // Mubeen config
@@ -104,6 +104,24 @@ const config = {
 //     idleTimeoutMillis: 15000,
 //   },
 // };
+
+// Rafii config
+
+
+const config = {
+  user: "sa",
+  password: "1211",
+  server: "DESKTOP-SGEVEOQ",
+  database: "TicketSystem",
+  port: 1433,
+  options: { encrypt: false },
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 15000,
+  },
+};
+
 
 const pool = new mssql.ConnectionPool(config);
 

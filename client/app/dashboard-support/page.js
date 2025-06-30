@@ -110,8 +110,12 @@ export default function AdminDashboard() {
         },
       });
 
-      const sortedTickets = sortTickets(response.data);
+      console.log("Fetched tickets response:", response.data);
+
+      const ticketData = Array.isArray(response.data) ? response.data : [];
+      const sortedTickets = sortTickets(ticketData);
       setTickets(sortedTickets);
+      return sortedTickets;
 
       // Update statistics
       const stats = response.data.reduce(
@@ -196,8 +200,14 @@ export default function AdminDashboard() {
   }, []);
 
   const handleRefresh = async () => {
+    console.log("Refresh button clicked!");
     setRefreshing(true);
-    await fetchTickets();
+    const newTickets = await fetchTickets();
+    setTickets(newTickets);
+    console.log("Done!");
+    setRefreshing(false);
+
+    setCurrentPage(1);
   };
 
   const handleDelete = async (ticketCode) => {
@@ -325,6 +335,10 @@ export default function AdminDashboard() {
       </div>
     );
   }
+
+  console.log("Fetched data:", tickets);
+  console.log("Filtered tickets:", filteredTickets);
+  console.log("Current items:", currentItems);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -505,6 +519,14 @@ export default function AdminDashboard() {
                   <SelectItem value="Closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Button
+                onClick={handleRefresh}
+                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+              >
+                Refresh
+              </Button>
+
             </div>
             <div className="flex items-center space-x-2">
               <input
