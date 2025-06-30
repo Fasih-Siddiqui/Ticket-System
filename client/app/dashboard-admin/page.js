@@ -389,9 +389,9 @@ export default function AdminDashboard() {
         setCollapsed={setSidebarCollapsed}
       />
       <div
-        className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-60"}`}
+        className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}
       >
-        <div className="bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg">
+        <div className={`bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 shadow-lg border-b border-gray-200`}>
           <div className="mx-2 py-4">
             <div className="grid grid-cols-3 items-center">
               <div className="flex items-center ml-1">
@@ -405,10 +405,10 @@ export default function AdminDashboard() {
                 />
               </div>
               <div className="flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-semibold text-gray-100">
+                <h1 className="text-2xl font-semibold text-gray-700">
                   Welcome {userData?.fullname}
                 </h1>
-                <p className="mt-1 text-sm text-gray-200">
+                <p className="mt-1 text-sm text-gray-500">
                   Admin Dashboard
                 </p>
               </div>
@@ -418,7 +418,7 @@ export default function AdminDashboard() {
                     localStorage.removeItem("token");
                     router.push("/");
                   }}
-                  className="bg-white hover:bg-gray-100 text-gray-600 font-semibold"
+                  className="bg-white hover:bg-gray-100 text-gray-700 font-semibold"
                 >
                   Logout
                 </Button>

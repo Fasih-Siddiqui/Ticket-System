@@ -41,7 +41,12 @@ export default function Sidebar({ onLogout, collapsed, setCollapsed }) {
             <span className="flex items-center justify-center w-8 h-8">
               <Icon className="w-5 h-5 text-gray-500 group-hover:text-blue-700" />
             </span>
-            {!collapsed && <span className="ml-2 text-base font-medium group-hover:text-blue-700">{label}</span>}
+            <span
+              className={`ml-2 text-base font-medium group-hover:text-blue-700 transition-all duration-200 overflow-hidden whitespace-nowrap ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+              style={{ maxWidth: collapsed ? 0 : 160 }}
+            >
+              {label}
+            </span>
           </Link>
         ))}
       </nav>
@@ -53,7 +58,12 @@ export default function Sidebar({ onLogout, collapsed, setCollapsed }) {
           <span className="flex items-center justify-center w-8 h-8">
             <LucideLogOut className="w-5 h-5 text-gray-500 group-hover:text-blue-700" />
           </span>
-          {!collapsed && <span className="font-medium">Logout</span>}
+          <span
+            className={`font-medium transition-all duration-200 overflow-hidden whitespace-nowrap ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+            style={{ maxWidth: collapsed ? 0 : 160 }}
+          >
+            Logout
+          </span>
         </button>
       </div>
     </aside>
