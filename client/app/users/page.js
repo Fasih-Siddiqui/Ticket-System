@@ -19,9 +19,15 @@ export default function UsersPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [phone, setPhone] = useState("");
+  const [department, setDepartment] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [status, setStatus] = useState("active");
+  const [profilePic, setProfilePic] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -33,9 +39,14 @@ export default function UsersPage() {
     if (
       firstName === "" ||
       lastName === "" ||
+      username === "" ||
       email === "" ||
       password === "" ||
-      role === ""
+      role === "" ||
+      phone === "" ||
+      department === "" ||
+      designation === "" ||
+      status === ""
     ) {
       setError("Please fill in all fields");
       return;
@@ -47,9 +58,15 @@ export default function UsersPage() {
       setSuccess("User added successfully!");
       setFirstName("");
       setLastName("");
+      setUsername("");
       setEmail("");
       setPassword("");
       setRole("");
+      setPhone("");
+      setDepartment("");
+      setDesignation("");
+      setStatus("active");
+      setProfilePic(null);
     }, 1000);
   };
 
@@ -89,7 +106,11 @@ export default function UsersPage() {
               <CardTitle className="text-xl font-bold">Add User</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form
+                className="space-y-6"
+                onSubmit={handleSubmit}
+                encType="multipart/form-data"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="firstName">First Name</Label>
@@ -112,6 +133,16 @@ export default function UsersPage() {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      name="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
@@ -119,6 +150,17 @@ export default function UsersPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       required
                     />
                   </div>
@@ -133,19 +175,54 @@ export default function UsersPage() {
                       required
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="department">Department</Label>
+                    <Input
+                      id="department"
+                      name="department"
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="designation">Designation</Label>
+                    <Input
+                      id="designation"
+                      name="designation"
+                      value={designation}
+                      onChange={(e) => setDesignation(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={role} onValueChange={setRole} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="support">Support</SelectItem>
-                      <SelectItem value="employee">Employee</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="role">Role</Label>
+                    <Select value={role} onValueChange={setRole} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="support">Support</SelectItem>
+                        <SelectItem value="employee">Employee</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={status} onValueChange={setStatus} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                 </div>
                 {success && (
                   <div className="text-green-600 font-medium">{success}</div>
@@ -157,7 +234,7 @@ export default function UsersPage() {
                     className="bg-blue-600 text-white hover:bg-blue-700"
                     disabled={loading}
                   >
-                    {loading ? "Adding..." : "Add User"}
+                    {loading ? "Adding..." : "Save"}
                   </Button>
                 </div>
               </form>
