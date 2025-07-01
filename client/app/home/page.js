@@ -36,75 +36,96 @@ export default function Home() {
           {/* Top Stats Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Total Tickets */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-lg p-6 flex flex-col justify-between min-h-[150px] border-b-4 border-blue-800">
+            <div className="relative bg-white border border-blue-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-blue-500 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold text-white">Total Tickets</span>
-                <LucideBarChart2 className="w-7 h-7 text-blue-200" />
+                <span className="text-base font-semibold text-gray-700">Total Tickets</span>
+                <span className="bg-blue-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideBarChart2 className="w-7 h-7 text-blue-500" />
+                </span>
               </div>
-              <div className="text-4xl font-extrabold text-white mb-1">128</div>
-              <span className="text-sm text-blue-200">All tickets in the system</span>
+              <div className="text-3xl font-bold text-blue-700 mb-1">128</div>
+              <span className="text-xs text-gray-400 font-medium">All tickets in the system</span>
             </div>
             {/* Open Tickets */}
-            <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl shadow-lg p-6 flex flex-col justify-between min-h-[150px] border-b-4 border-yellow-700">
+            <div className="relative bg-white border border-yellow-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold text-white">Open Tickets</span>
-                <LucidePieChart className="w-7 h-7 text-yellow-200" />
+                <span className="text-base font-semibold text-gray-700">Open Tickets</span>
+                <span className="bg-yellow-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucidePieChart className="w-7 h-7 text-yellow-500" />
+                </span>
               </div>
-              <div className="text-4xl font-extrabold text-white mb-1">34</div>
-              <span className="text-sm text-yellow-100">Currently open</span>
+              <div className="text-3xl font-bold text-yellow-600 mb-1">34</div>
+              <span className="text-xs text-gray-400 font-medium">Currently open</span>
             </div>
             {/* Resolved Tickets */}
-            <div className="bg-gradient-to-br from-green-500 to-green-700 rounded-2xl shadow-lg p-6 flex flex-col justify-between min-h-[150px] border-b-4 border-green-800">
+            <div className="relative bg-white border border-green-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-green-500 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold text-white">Resolved Tickets</span>
-                <LucideTrendingUp className="w-7 h-7 text-green-200" />
+                <span className="text-base font-semibold text-gray-700">Resolved Tickets</span>
+                <span className="bg-green-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideTrendingUp className="w-7 h-7 text-green-500" />
+                </span>
               </div>
-              <div className="text-4xl font-extrabold text-white mb-1">81</div>
-              <span className="text-sm text-green-100">Marked as resolved</span>
+              <div className="text-3xl font-bold text-green-700 mb-1">81</div>
+              <span className="text-xs text-gray-400 font-medium">Marked as resolved</span>
             </div>
             {/* Users */}
-            <div className="bg-gradient-to-br from-cyan-500 to-cyan-700 rounded-2xl shadow-lg p-6 flex flex-col justify-between min-h-[150px] border-b-4 border-cyan-800">
+            <div className="relative bg-white border border-cyan-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold text-white">Total Users</span>
-                <LucideSearch className="w-7 h-7 text-cyan-200" />
+                <span className="text-base font-semibold text-gray-700">Total Users</span>
+                <span className="bg-cyan-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideSearch className="w-7 h-7 text-cyan-500" />
+                </span>
               </div>
-              <div className="text-4xl font-extrabold text-white mb-1">19</div>
-              <span className="text-sm text-cyan-100">Registered users</span>
+              <div className="text-3xl font-bold text-cyan-700 mb-1">19</div>
+              <span className="text-xs text-gray-400 font-medium">Registered users</span>
             </div>
           </div>
 
           {/* Lower Section: More Analytics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* High Priority Tickets */}
-            <div className="bg-gradient-to-br from-red-500 to-red-700 rounded-2xl shadow-lg p-6 flex flex-col justify-between min-h-[150px] border-b-4 border-red-800">
+            <div className="relative bg-white border border-red-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-red-500 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold text-white">High Priority</span>
-                <LucideAward className="w-7 h-7 text-red-200" />
+                <span className="text-base font-semibold text-gray-700">High Priority</span>
+                <span className="bg-red-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideAward className="w-7 h-7 text-red-500" />
+                </span>
               </div>
-              <div className="text-4xl font-extrabold text-white mb-1">7</div>
-              <span className="text-sm text-red-100">Tickets marked as high</span>
+              <div className="text-3xl font-bold text-red-600 mb-1">7</div>
+              <span className="text-xs text-gray-400 font-medium">Tickets marked as high</span>
             </div>
             {/* Support Staff */}
-            <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl shadow-lg p-6 flex flex-col justify-between min-h-[150px] border-b-4 border-blue-800">
+            <div className="relative bg-white border border-indigo-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold text-white">Support Staff</span>
-                <LucideLink className="w-7 h-7 text-blue-200" />
+                <span className="text-base font-semibold text-gray-700">Support Staff</span>
+                <span className="bg-indigo-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideLink className="w-7 h-7 text-indigo-500" />
+                </span>
               </div>
-              <div className="text-4xl font-extrabold text-white mb-1">5</div>
-              <span className="text-sm text-blue-100">Active support users</span>
+              <div className="text-3xl font-bold text-indigo-700 mb-1">5</div>
+              <span className="text-xs text-gray-400 font-medium">Active support users</span>
             </div>
             {/* Recent Activity */}
-            <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl shadow-lg p-6 flex flex-col justify-between min-h-[150px] border-b-4 border-indigo-800">
+            <div className="relative bg-white border border-fuchsia-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-fuchsia-500 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold text-white">Recent Activity</span>
-                <LucideActivity className="w-7 h-7 text-indigo-200" />
+                <span className="text-base font-semibold text-gray-700">Recent Activity</span>
+                <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideActivity className="w-7 h-7 text-fuchsia-500" />
+                </span>
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <svg width="80" height="32" viewBox="0 0 80 32">
-                  <polyline points="0,30 10,20 20,25 30,10 40,15 50,5 60,20 70,10 80,25" fill="none" stroke="#c7d2fe" strokeWidth="2" />
+                  <polyline points="0,30 10,20 20,25 30,10 40,15 50,5 60,20 70,10 80,25" fill="none" stroke="#d946ef" strokeWidth="2" />
                 </svg>
               </div>
-              <span className="text-sm text-indigo-100 mt-2">Latest ticket updates</span>
+              <span className="text-xs text-gray-400 font-medium mt-2">Latest ticket updates</span>
             </div>
           </div>
         </div>
