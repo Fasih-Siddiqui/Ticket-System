@@ -39,6 +39,8 @@ import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import { API_BASE_URL } from "../config";
 import Sidebar from "@/components/Sidebar";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -375,25 +377,67 @@ export default function AdminDashboard() {
   };
 
   const handleCreateTicket = async () => {
+    if (!newTicket.title.trim() || !newTicket.description.trim() || !newTicket.priority.trim()) {
+      toast.error("Please fill all required fields.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    
     try {
       const token = localStorage.getItem("token");
       await axios.post(
         `${API_BASE_URL}/api/tickets`,
-        newTicket,
+        {
+          title: newTicket.title,
+          description: newTicket.description,
+          priority: newTicket.priority,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      await fetchTickets();
+
+      // Reset form and close modal
+      setNewTicket({
+        title: "",
+        description: "",
+        priority: "",
+      });
       setIsModalOpen(false);
+      
+      // Refresh tickets list
+      await fetchTickets();
+
+      toast.success("Ticket created successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         localStorage.removeItem("token");
         router.push("/");
       } else {
-        setError("Failed to create ticket");
+        toast.error("Failed to create ticket. Please try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        console.error("Error creating ticket:", error);
       }
     }
   };
@@ -412,6 +456,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen">
+      <ToastContainer />
       <Sidebar
         onLogout={() => {
           localStorage.removeItem("token");
@@ -767,7 +812,7 @@ export default function AdminDashboard() {
                               className="text-gray-600 hover:text-gray-800"
                               onClick={() => handleCloseTicket(ticket.TicketCode)}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </Button>
@@ -849,6 +894,61 @@ export default function AdminDashboard() {
                 >
                   Delete
                 </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create New Ticket</DialogTitle>
+                <DialogDescription>
+                  Fill in the details to create a new ticket.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Title</Label>
+                  <input
+                    id="title"
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={newTicket.title}
+                    onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    className="w-full px-3 py-2 border rounded-md"
+                    rows={3}
+                    value={newTicket.description}
+                    onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select
+                    value={newTicket.priority}
+                    onValueChange={(value) => setNewTicket({ ...newTicket, priority: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateTicket}>Create Ticket</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
