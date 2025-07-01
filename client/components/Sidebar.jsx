@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 const navItems = [
+  { href: "/home", icon: LucideLayoutDashboard, label: "Home" },
   { href: "/dashboard-admin", icon: LucideLayoutDashboard, label: "Dashboard" },
   { href: "/tickets", icon: LucideTicket, label: "Tickets" },
   { href: "/users", icon: LucideUserCheck, label: "Users" },

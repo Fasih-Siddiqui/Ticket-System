@@ -83,7 +83,7 @@ export default function UsersPage() {
             </div>
           </div>
         </div>
-        <div className="mx-auto w-full max-w-3xl px-6 sm:px-8 lg:px-12 py-8 flex-grow">
+        <div className="w-full py-8 flex-grow px-4 md:px-8 lg:px-16">
           <Card className="shadow-sm">
             <CardHeader className="border-b">
               <CardTitle className="text-xl font-bold">Add User</CardTitle>
@@ -136,11 +136,7 @@ export default function UsersPage() {
                 </div>
                 <div>
                   <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={role}
-                    onValueChange={setRole}
-                    required
-                  >
+                  <Select value={role} onValueChange={setRole} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
