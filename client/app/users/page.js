@@ -76,14 +76,14 @@ export default function UsersPage() {
               </div>
               <div className="flex flex-col items-center justify-center">
                 <h1 className="text-2xl font-bold text-gray-700 leading-tight font-sans tracking-tight drop-shadow-sm">
-                  Users
+                  Create Users
                 </h1>
               </div>
               <div></div>
             </div>
           </div>
         </div>
-        <div className="w-full py-8 flex-grow px-4 md:px-8 lg:px-16">
+        <div className="w-full py-8 flex-grow px-4 md:px-8 lg:px-18">
           <Card className="shadow-sm">
             <CardHeader className="border-b">
               <CardTitle className="text-xl font-bold">Add User</CardTitle>
