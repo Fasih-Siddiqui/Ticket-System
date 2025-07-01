@@ -392,7 +392,7 @@ export default function AdminDashboard() {
         className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}
       >
         <div className={`bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 shadow-sm border-b border-gray-200`}>
-          <div className="mx-2 py-4">
+          <div className="mx-2 py-0.5">
             <div className="grid grid-cols-3 items-center">
               <div className="flex items-center ml-1">
                 <Image
@@ -408,9 +408,9 @@ export default function AdminDashboard() {
                 <h1 className="text-2xl font-bold text-gray-700 leading-tight font-sans tracking-tight drop-shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
                   Welcome <span className="font-black text-gray-800">{userData?.fullname}</span>
                 </h1>
-                <p className="mt-1 text-base font-medium text-gray-600 font-sans tracking-normal bg-white/80 px-4 py-1 rounded-lg shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
+                {/* <p className="mt-1 text-base font-medium text-gray-600 font-sans tracking-normal bg-white/80 px-4 py-1 rounded-lg shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
                   Admin Dashboard
-                </p>
+                </p> */}
               </div>
               <div className="flex justify-end">
         
