@@ -13,19 +13,21 @@ export default function Home() {
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
         {/* Top Nav Bar */}
-        <div className="bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg border-b border-gray-200">
-          <div className="mx-2 py-4">
+        <div className="bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 shadow-sm border-b border-gray-200">
+          <div className="mx-2 py-0.5">
             <div className="grid grid-cols-3 items-center">
               <div className="flex items-center ml-1">
-                <Image src="/logo.png" alt="i-MSConsulting Logo" width={180} height={60} priority className="p-0 m-0" />
+                <Image src="/logo.png" alt="i-MSConsulting Logo" width={220} height={200} priority className="p-0 m-0" />
               </div>
               <div className="flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-semibold text-gray-100">Dashboard Overview</h1>
+                <h1 className="text-2xl font-bold text-gray-700 leading-tight font-sans tracking-tight drop-shadow-sm">
+                  Dashboard Overview
+                </h1>
               </div>
-              <div className="flex items-center justify-end space-x-2">
+              {/* <div className="flex items-center justify-end space-x-2">
                 <Button className="bg-white text-gray-700 font-semibold hover:bg-gray-100">Login</Button>
                 <Button className="bg-blue-600 text-white font-semibold hover:bg-blue-700">Sign Up</Button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

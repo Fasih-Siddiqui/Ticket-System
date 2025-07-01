@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/home", icon: LucideLayoutDashboard, label: "Home" },
-  { href: "/dashboard-admin", icon: LucideLayoutDashboard, label: "Dashboard" },
-  { href: "/tickets", icon: LucideTicket, label: "Tickets" },
+  // { href: "/home", icon: LucideLayoutDashboard, label: "Home" },
+  { href: "/home", icon: LucideLayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard-admin", icon: LucideTicket, label: "Tickets" },
   { href: "/users", icon: LucideUserCheck, label: "Users" },
   { href: "/settings", icon: LucideSettings, label: "Settings" },
 ];
