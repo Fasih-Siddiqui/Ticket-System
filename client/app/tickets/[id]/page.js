@@ -43,13 +43,53 @@ const TicketDetails = ({ params }) => {
   const router = useRouter();
 
   const formatDateTime = (date) => {
+    if (!date) return '';
+    // If date is already a number (timestamp), use it directly
+    if (typeof date === 'number') {
+      return new Date(date).toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    }
+    // If date is a string, try to parse as ISO or as number
+    if (typeof date === 'string') {
+      // If it's a numeric string (timestamp)
+      if (/^\d+$/.test(date)) {
+        return new Date(Number(date)).toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+      }
+      // If it's an ISO string, parse as UTC
+      if (date.match(/\d{4}-\d{2}-\d{2}T/)) {
+        // Always use UTC for ISO strings
+        return new Date(date).toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: 'UTC',
+        });
+      }
+    }
+    // Fallback
     return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
   };
   
@@ -128,7 +168,14 @@ const TicketDetails = ({ params }) => {
         }
       );
 
-      // Update the ticket's comments array with the new comment
+      // Use the server's time for the comment, parsed as UTC and shown in local time
+      const serverDate = response.data.comment.date;
+      let localDate = serverDate;
+      // If the serverDate is an ISO string, parse and store as a Date object for immediate display
+      if (typeof serverDate === 'string' && serverDate.match(/\d{4}-\d{2}-\d{2}T/)) {
+        localDate = new Date(serverDate.endsWith('Z') ? serverDate : serverDate + 'Z');
+      }
+
       setTicket(prevTicket => ({
         ...prevTicket,
         comments: [
@@ -136,7 +183,7 @@ const TicketDetails = ({ params }) => {
             CommentID: response.data.comment.id,
             CommentText: response.data.comment.text,
             CommentedBy: response.data.comment.commentedBy,
-            CommentDate: response.data.comment.date,
+            CommentDate: localDate, // store as Date object for immediate correct display
             TicketCode: response.data.comment.ticketCode
           },
           ...(prevTicket.comments || [])
