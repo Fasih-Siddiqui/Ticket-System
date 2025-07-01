@@ -338,7 +338,7 @@ const TicketDetails = ({ params }) => {
         </div>
 
         {/* Main Content */}
-        <div className="mx-auto w-full max-w-5xl px-6 sm:px-8 lg:px-12 py-8 flex-grow">
+        <div className="w-full px-2 sm:px-4 lg:px-8 py-8 flex-grow">
           {userData?.role === 'admin' && (
             <div className="mb-6 flex justify-end gap-2">
               <Button
@@ -410,11 +410,12 @@ const TicketDetails = ({ params }) => {
 
               {/* Comments Section */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold">Comments</h2>
-                </div>
+               
                 
                 <Card className="shadow-sm">
+                   <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold pt-4 pb-1 px-4">Comments</h2>
+                </div>
                   <CardContent className="pt-6">
                     <form onSubmit={handleCommentSubmit} className="space-y-4">
                       <Textarea
