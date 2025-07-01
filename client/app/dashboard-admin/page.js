@@ -30,7 +30,14 @@ import {
   ArrowUpDown,
   Filter,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  LucideRefreshCcw,
+  LucideCalendar,
+  LucideTag,
+  LucideFlag,
+  LucidePlus,
+  LucideEye,
+  LucideTrash
 } from 'lucide-react';
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -538,18 +545,18 @@ export default function AdminDashboard() {
                   defaultValue="10"
                   onValueChange={handleItemsPerPageChange}
                 >
-                  <SelectTrigger className="w-[100px]">
+                  {/* <SelectTrigger className="w-[100px]">
                     <SelectValue placeholder="10" />
-                  </SelectTrigger>
-                  <SelectContent>
+                  </SelectTrigger> */}
+                  {/* <SelectContent>
                     <SelectItem value="10">10</SelectItem>
                     <SelectItem value="20">20</SelectItem>
                     <SelectItem value="30">30</SelectItem>
                     <SelectItem value="40">40</SelectItem>
                     <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
+                  </SelectContent> */}
                 </Select>
-                <Select
+                {/* <Select
                   value={statusFilter}
                   onValueChange={setStatusFilter}
                 >
@@ -563,16 +570,9 @@ export default function AdminDashboard() {
                     <SelectItem value="Resolved">Resolved</SelectItem>
                     <SelectItem value="Closed">Closed</SelectItem>
                   </SelectContent>
-                </Select>
+                </Select> */}
 
-                <Button
-                  onClick={handleRefresh}
-                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
-                >
-                  Refresh
-                </Button>
-              </div>
-              <div className="flex items-center space-x-2">
+               
                 {/* <input
                   type="search"
                   placeholder="Search..."
@@ -580,6 +580,16 @@ export default function AdminDashboard() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 /> */}
+
+              
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={handleRefresh}
+                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >
+                  Refresh
+                </Button>
                 <Button
                   onClick={() => setIsModalOpen(true)}
                   className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
@@ -589,6 +599,7 @@ export default function AdminDashboard() {
                   </svg>
                   <span>Create Ticket</span>
                 </Button>
+                
               </div>
             </div>
 
@@ -617,7 +628,8 @@ export default function AdminDashboard() {
                             <div className="flex items-center gap-1">
                               <button 
                                 onClick={() => handleSort(column.id)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Sort"
                               >
                                 {sortField === column.id ? (
                                   sortDirection === 'asc' ? (
@@ -631,7 +643,8 @@ export default function AdminDashboard() {
                               </button>
                               <button 
                                 onClick={() => handleFilter(column.id)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Filter"
                               >
                                 <Filter 
                                   className={`h-3.5 w-3.5 ${
@@ -758,10 +771,25 @@ export default function AdminDashboard() {
               </table>
             </div>
 
-            <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex items-center text-sm text-gray-500">
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
-              </div>
+            <div className="px-4 py-3 border-t border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+              <div className="flex items-center text-sm text-gray-500 gap-4">
+                <span>
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="rowsPerPage" className="text-xs text-gray-600">Rows per page:</label>
+                  <select
+                    id="rowsPerPage"
+                    value={itemsPerPage}
+                    onChange={e => handleItemsPerPageChange(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {[10, 20, 30, 40, 50, 100].map(num => (
+                      <option key={num} value={num}>{num}</option>
+                    ))}
+                  </select>
+                </div>
+                </div>
               <div className="flex items-center space-x-1">
                 <Button
                   variant="ghost"
