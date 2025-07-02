@@ -386,7 +386,7 @@ export default function AdminDashboard() {
   console.log("Current items:", currentItems);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar
         onLogout={() => {
           localStorage.removeItem("token");

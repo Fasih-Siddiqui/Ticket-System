@@ -295,7 +295,7 @@ const TicketDetails = ({ params }) => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar
         onLogout={handleLogout}
         collapsed={sidebarCollapsed}

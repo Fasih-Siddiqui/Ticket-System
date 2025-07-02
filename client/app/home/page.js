@@ -9,7 +9,7 @@ import Sidebar from "@/components/Sidebar";
 export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
         {/* Top Nav Bar */}
@@ -82,6 +82,50 @@ export default function Home() {
               </div>
               <div className="text-3xl font-bold text-cyan-700 mb-1">19</div>
               <span className="text-xs text-gray-400 font-medium">Registered users</span>
+            </div>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Pie Chart */}
+            <div className="bg-white border border-gray-100 shadow rounded-xl p-6 flex flex-col items-center">
+              <h2 className="text-lg font-bold mb-4 text-gray-700">Ticket Status Distribution</h2>
+              <svg width="220" height="220" viewBox="0 0 220 220">
+                {/* Example Pie Chart: 4 segments */}
+                <circle r="100" cx="110" cy="110" fill="#e5e7eb" />
+                <path d="M110,110 L110,10 A100,100 0 0,1 210,110 Z" fill="#2563eb" />
+                <path d="M110,110 L210,110 A100,100 0 0,1 110,210 Z" fill="#facc15" />
+                <path d="M110,110 L110,210 A100,100 0 0,1 10,110 Z" fill="#22c55e" />
+                <path d="M110,110 L10,110 A100,100 0 0,1 110,10 Z" fill="#f87171" />
+              </svg>
+              <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-blue-600 inline-block"></span> Open</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> In Progress</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Resolved</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-400 inline-block"></span> Closed</div>
+              </div>
+            </div>
+            {/* Bar Chart */}
+            <div className="bg-white border border-gray-100 shadow rounded-xl p-6 flex flex-col items-center">
+              <h2 className="text-lg font-bold mb-4 text-gray-700">Tickets by Priority</h2>
+              <svg width="260" height="180" viewBox="0 0 260 180">
+                {/* Example Bar Chart: 3 bars */}
+                <rect x="30" y="60" width="40" height="100" fill="#f87171" />
+                <rect x="100" y="30" width="40" height="130" fill="#facc15" />
+                <rect x="170" y="90" width="40" height="70" fill="#22c55e" />
+                {/* Axis */}
+                <line x1="20" y1="160" x2="240" y2="160" stroke="#d1d5db" strokeWidth="2" />
+                <line x1="20" y1="20" x2="20" y2="160" stroke="#d1d5db" strokeWidth="2" />
+                {/* Labels */}
+                <text x="50" y="175" fontSize="14" fill="#6b7280">High</text>
+                <text x="120" y="175" fontSize="14" fill="#6b7280">Medium</text>
+                <text x="190" y="175" fontSize="14" fill="#6b7280">Low</text>
+              </svg>
+              <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-red-400 inline-block"></span> High</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-yellow-400 inline-block"></span> Medium</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-green-500 inline-block"></span> Low</div>
+              </div>
             </div>
           </div>
 
