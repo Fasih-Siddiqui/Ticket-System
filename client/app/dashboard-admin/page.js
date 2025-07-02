@@ -30,7 +30,14 @@ import {
   ArrowUpDown,
   Filter,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  LucideRefreshCcw,
+  LucideCalendar,
+  LucideTag,
+  LucideFlag,
+  LucidePlus,
+  LucideEye,
+  LucideTrash
 } from 'lucide-react';
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -507,105 +514,72 @@ export default function AdminDashboard() {
 
         <div className="flex-grow p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-            <Card
-              className="bg-gradient-to-br from-blue-500 to-blue-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
-              onClick={() => {
-                setStatusFilter('all');
-                setSearchQuery('');
-              }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between relative z-10">
-                  <div>
-                    <p className="text-sm font-medium text-white">Total Tickets</p>
-                    <p className="text-3xl font-bold text-white mt-2">{totalTickets}</p>
+            {/* Card data */}
+            {[
+              {
+                label: 'Total Tickets',
+                value: totalTickets,
+                icon: LucideTicket,
+                gradient: 'from-blue-500 to-blue-600',
+                border: 'border-blue-500',
+                iconBg: 'bg-blue-100',
+                iconColor: 'text-blue-600',
+              },
+              {
+                label: 'Open',
+                value: openTickets,
+                icon: LucideTicketPlus,
+                gradient: 'from-yellow-400 to-yellow-500',
+                border: 'border-yellow-400',
+                iconBg: 'bg-yellow-100',
+                iconColor: 'text-yellow-500',
+              },
+              {
+                label: 'In Progress',
+                value: inProgressTickets,
+                icon: LucideLoader2,
+                gradient: 'from-orange-400 to-orange-500',
+                border: 'border-orange-400',
+                iconBg: 'bg-orange-100',
+                iconColor: 'text-orange-500',
+              },
+              {
+                label: 'Resolved',
+                value: resolvedTickets,
+                icon: LucideTicketCheck,
+                gradient: 'from-green-500 to-green-600',
+                border: 'border-green-500',
+                iconBg: 'bg-green-100',
+                iconColor: 'text-green-600',
+              },
+              {
+                label: 'Closed',
+                value: closedTickets,
+                icon: LucideAlertCircle,
+                gradient: 'from-gray-400 to-gray-500',
+                border: 'border-gray-400',
+                iconBg: 'bg-gray-100',
+                iconColor: 'text-gray-600',
+              },
+            ].map((card, idx) => (
+              <Card
+                key={card.label}
+                className={`relative overflow-hidden border ${card.border} bg-white shadow-md group transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}
+              >
+                <div className={`absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-gradient-to-br ${card.gradient} opacity-10 z-0`} />
+                <CardContent className="p-6 flex flex-col gap-2 z-10 relative">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-full p-3 ${card.iconBg} shadow-sm`}>
+                      <card.icon className={`w-7 h-7 ${card.iconColor}`} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{card.label}</p>
+                      <p className="text-3xl font-bold text-gray-800 leading-tight">{card.value}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="absolute right-0 bottom-0 opacity-10">
-                  <LucideTicket className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
-              onClick={() => {
-                setStatusFilter('Open');
-                setSearchQuery('');
-              }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between relative z-10">
-                  <div>
-                    <p className="text-sm font-medium text-white">Open</p>
-                    <p className="text-3xl font-bold text-white mt-2">{openTickets}</p>
-                  </div>
-                </div>
-                <div className="absolute right-0 bottom-0 opacity-10">
-                  <LucideTicketPlus className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="bg-gradient-to-br from-orange-500 to-orange-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
-              onClick={() => {
-                setStatusFilter('In Progress');
-                setSearchQuery('');
-              }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between relative z-10">
-                  <div>
-                    <p className="text-sm font-medium text-white">In Progress</p>
-                    <p className="text-3xl font-bold text-white mt-2">{inProgressTickets}</p>
-                  </div>
-                </div>
-                <div className="absolute right-0 bottom-0 opacity-10">
-                  <LucideLoader2 className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="bg-gradient-to-br from-green-500 to-green-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
-              onClick={() => {
-                setStatusFilter('Resolved');
-                setSearchQuery('');
-              }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between relative z-10">
-                  <div>
-                    <p className="text-sm font-medium text-white">Resolved</p>
-                    <p className="text-3xl font-bold text-white mt-2">{resolvedTickets}</p>
-                  </div>
-                </div>
-                <div className="absolute right-0 bottom-0 opacity-10">
-                  <LucideTicketCheck className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="bg-gradient-to-br from-gray-500 to-gray-600 shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:brightness-105 border-0"
-              onClick={() => {
-                setStatusFilter('Closed');
-                setSearchQuery('');
-              }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between relative z-10">
-                  <div>
-                    <p className="text-sm font-medium text-white">Closed</p>
-                    <p className="text-3xl font-bold text-white mt-2">{closedTickets}</p>
-                  </div>
-                </div>
-                <div className="absolute right-0 bottom-0 opacity-10">
-                  <LucideAlertCircle className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           <div className="bg-white rounded-lg shadow">
@@ -615,18 +589,18 @@ export default function AdminDashboard() {
                   defaultValue="10"
                   onValueChange={handleItemsPerPageChange}
                 >
-                  <SelectTrigger className="w-[100px]">
+                  {/* <SelectTrigger className="w-[100px]">
                     <SelectValue placeholder="10" />
-                  </SelectTrigger>
-                  <SelectContent>
+                  </SelectTrigger> */}
+                  {/* <SelectContent>
                     <SelectItem value="10">10</SelectItem>
                     <SelectItem value="20">20</SelectItem>
                     <SelectItem value="30">30</SelectItem>
                     <SelectItem value="40">40</SelectItem>
                     <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
+                  </SelectContent> */}
                 </Select>
-                <Select
+                {/* <Select
                   value={statusFilter}
                   onValueChange={setStatusFilter}
                 >
@@ -640,16 +614,9 @@ export default function AdminDashboard() {
                     <SelectItem value="Resolved">Resolved</SelectItem>
                     <SelectItem value="Closed">Closed</SelectItem>
                   </SelectContent>
-                </Select>
+                </Select> */}
 
-                <Button
-                  onClick={handleRefresh}
-                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
-                >
-                  Refresh
-                </Button>
-              </div>
-              <div className="flex items-center space-x-2">
+               
                 {/* <input
                   type="search"
                   placeholder="Search..."
@@ -657,6 +624,16 @@ export default function AdminDashboard() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 /> */}
+
+              
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={handleRefresh}
+                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >
+                  Refresh
+                </Button>
                 <Button
                   onClick={() => setIsModalOpen(true)}
                   className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
@@ -666,6 +643,7 @@ export default function AdminDashboard() {
                   </svg>
                   <span>Create Ticket</span>
                 </Button>
+                
               </div>
             </div>
 
@@ -694,7 +672,8 @@ export default function AdminDashboard() {
                             <div className="flex items-center gap-1">
                               <button 
                                 onClick={() => handleSort(column.id)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Sort"
                               >
                                 {sortField === column.id ? (
                                   sortDirection === 'asc' ? (
@@ -708,7 +687,8 @@ export default function AdminDashboard() {
                               </button>
                               <button 
                                 onClick={() => handleFilter(column.id)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Filter"
                               >
                                 <Filter 
                                   className={`h-3.5 w-3.5 ${
@@ -835,10 +815,25 @@ export default function AdminDashboard() {
               </table>
             </div>
 
-            <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex items-center text-sm text-gray-500">
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
-              </div>
+            <div className="px-4 py-3 border-t border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+              <div className="flex items-center text-sm text-gray-500 gap-4">
+                <span>
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="rowsPerPage" className="text-xs text-gray-600">Rows per page:</label>
+                  <select
+                    id="rowsPerPage"
+                    value={itemsPerPage}
+                    onChange={e => handleItemsPerPageChange(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {[10, 20, 30, 40, 50, 100].map(num => (
+                      <option key={num} value={num}>{num}</option>
+                    ))}
+                  </select>
+                </div>
+                </div>
               <div className="flex items-center space-x-1">
                 <Button
                   variant="ghost"
