@@ -68,7 +68,7 @@ export default function Sidebar({ onLogout, collapsed, setCollapsed }) {
             if (typeof onLogout === 'function') {
               onLogout();
             } else {
-              // fallback: clear token and reload
+              // fallback: clear token and reloads
               if (typeof window !== 'undefined') {
                 localStorage.removeItem('token');
                 window.location.href = '/';
