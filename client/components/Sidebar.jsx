@@ -64,7 +64,17 @@ export default function Sidebar({ onLogout, collapsed, setCollapsed }) {
       {/* Logout */}
       <div className="p-2 border-t border-gray-200 bg-white/80">
         <button
-          onClick={onLogout}
+          onClick={() => {
+            if (typeof onLogout === 'function') {
+              onLogout();
+            } else {
+              // fallback: clear token and reload
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('token');
+                window.location.href = '/';
+              }
+            }
+          }}
           className="flex items-center gap-2 w-full px-2 py-2 rounded-lg transition-all text-left font-semibold bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
           style={{ minHeight: 44 }}
         >
