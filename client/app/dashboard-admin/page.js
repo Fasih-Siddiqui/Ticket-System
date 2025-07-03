@@ -576,7 +576,7 @@ export default function AdminDashboard() {
                 
               </div>
             </div>
-
+            {/* Tickets Table */}
             <div className="overflow-x-auto border rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
