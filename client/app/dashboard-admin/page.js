@@ -45,11 +45,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { API_BASE_URL } from "../config";
 import Sidebar from "@/components/Sidebar";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -77,8 +72,6 @@ export default function AdminDashboard() {
   const [activeFilters, setActiveFilters] = useState({});
   const [columnFilters, setColumnFilters] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTicket, setNewTicket] = useState({ title: '', description: '', priority: 'Low' });
 
   useEffect(() => {
     if (tickets) {
@@ -380,175 +373,208 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCreateTicket = async () => {
-    if (!newTicket.title.trim() || !newTicket.description.trim() || !newTicket.priority.trim()) {
-      toast.error("Please fill all required fields.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      return;
-    }
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${API_BASE_URL}/api/tickets`,
-        newTicket,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      await fetchTickets();
-      setIsModalOpen(false);
-      setNewTicket({ title: '', description: '', priority: 'Low' });
-      toast.success("Ticket created successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        localStorage.removeItem("token");
-        router.push("/");
-      } else {
-        toast.error("Failed to create ticket. Please try again.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      }
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-    </div>
-  );
+      </div>
+    );
+  }
 
   console.log("Fetched data:", tickets);
   console.log("Filtered tickets:", filteredTickets);
   console.log("Current items:", currentItems);
-}
 
   return (
-    <>
-      <ToastContainer />
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar
-          onLogout={() => {
-            localStorage.removeItem("token");
-            router.push("/");
-          }}
-          collapsed={sidebarCollapsed}
-          setCollapsed={setSidebarCollapsed}
-        />
-        <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
-          {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg">
-            <div className="mx-2 py-4">
-              <div className="grid grid-cols-3 items-center">
-                <div className="flex items-center ml-1">
-                  <Image
-                    src="/logo.png"
-                    alt="i-MSConsulting Logo"
-                    width={220}
-                    height={200}
-                    priority
-                    className="p-0 m-0"
-                  />
-                </div>
-                <div className="flex flex-col items-center justify-center">
-                  <h1 className="text-2xl font-semibold text-gray-100">
-                    Welcome {userData?.fullname}
-                  </h1>
-                </div>
-                <div className="flex justify-end"></div>
-              </div>
-            </div>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar
+        onLogout={() => {
+          localStorage.removeItem("token");
+          router.push("/");
+        }}
+        collapsed={sidebarCollapsed}
+        setCollapsed={setSidebarCollapsed}
+      />
+      <div
+        className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}
+      >
+        {/* Unified Topbar/Navbar */}
+        <nav className="w-full flex items-center justify-between px-3 py-2 bg-white/90 backdrop-blur-md shadow-md z-20 border-b border-blue-100 sticky top-0 left-0 right-0" style={{ minHeight: '64px' }}>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/IMSC I - 1 - logo.png"
+              alt="i-MSConsulting Logo"
+              width={56}
+              height={56}
+              priority
+              className=""
+              style={{ display: 'block', margin: 0, padding: 0 }}
+            />
+            {/* <span className="text-2xl font-bold text-blue-900 tracking-tight hidden sm:inline">i-MSConsulting</span> */}
+          </div>
+          <div className="flex items-center gap-4">
+            {/* Search Field */}
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full max-w-xs px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800 shadow-sm"
+              style={{ minWidth: '180px' }}
+            />
+            {/* Notification Bell */}
+            <button className="relative p-2 rounded-full hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <svg className="w-7 h-7 text-blue-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 shadow">3</span>
+            </button>
+            {/* Logout Button */}
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                router.push("/");
+              }}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              Logout
+            </button>
+          </div>
+        </nav>
+
+        <div className="flex-grow p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+            {/* Card data */}
+            {[
+              {
+                label: 'Total Tickets',
+                value: totalTickets,
+                icon: LucideTicket,
+                gradient: 'from-blue-500 to-blue-600',
+                border: 'border-blue-500',
+                iconBg: 'bg-blue-100',
+                iconColor: 'text-blue-600',
+              },
+              {
+                label: 'Open',
+                value: openTickets,
+                icon: LucideTicketPlus,
+                gradient: 'from-yellow-400 to-yellow-500',
+                border: 'border-yellow-400',
+                iconBg: 'bg-yellow-100',
+                iconColor: 'text-yellow-500',
+              },
+              {
+                label: 'In Progress',
+                value: inProgressTickets,
+                icon: LucideLoader2,
+                gradient: 'from-orange-400 to-orange-500',
+                border: 'border-orange-400',
+                iconBg: 'bg-orange-100',
+                iconColor: 'text-orange-500',
+              },
+              {
+                label: 'Resolved',
+                value: resolvedTickets,
+                icon: LucideTicketCheck,
+                gradient: 'from-green-500 to-green-600',
+                border: 'border-green-500',
+                iconBg: 'bg-green-100',
+                iconColor: 'text-green-600',
+              },
+              {
+                label: 'Closed',
+                value: closedTickets,
+                icon: LucideAlertCircle,
+                gradient: 'from-gray-400 to-gray-500',
+                border: 'border-gray-400',
+                iconBg: 'bg-gray-100',
+                iconColor: 'text-gray-600',
+              },
+            ].map((card, idx) => (
+              <Card
+                key={card.label}
+                className={`relative overflow-hidden border ${card.border} bg-white shadow-md group transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}
+              >
+                <div className={`absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-gradient-to-br ${card.gradient} opacity-10 z-0`} />
+                <CardContent className="p-6 flex flex-col gap-2 z-10 relative">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-full p-3 ${card.iconBg} shadow-sm`}>
+                      <card.icon className={`w-7 h-7 ${card.iconColor}`} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{card.label}</p>
+                      <p className="text-3xl font-bold text-gray-800 leading-tight">{card.value}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
-          {/* Main Content */}
-          <div className="mx-4 py-8">
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden" onClick={() => { setStatusFilter('all'); setSearchQuery(''); }}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between relative z-10">
-                    <div>
-                      <p className="text-sm font-medium text-white">Total Tickets</p>
-                      <p className="text-3xl font-bold text-white mt-2">{totalTickets}</p>
-                    </div>
-                  </div>
-                  <div className="absolute right-0 bottom-0 opacity-10">
-                    <LucideTicket className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden" onClick={() => { setStatusFilter('Open'); setSearchQuery(''); }}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between relative z-10">
-                    <div>
-                      <p className="text-sm font-medium text-white">Open</p>
-                      <p className="text-3xl font-bold text-white mt-2">{openTickets}</p>
-                    </div>
-                  </div>
-                  <div className="absolute right-0 bottom-0 opacity-10">
-                    <LucideTicketPlus className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden" onClick={() => { setStatusFilter('In Progress'); setSearchQuery(''); }}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between relative z-10">
-                    <div>
-                      <p className="text-sm font-medium text-white">In Progress</p>
-                      <p className="text-3xl font-bold text-white mt-2">{inProgressTickets}</p>
-                    </div>
-                  </div>
-                  <div className="absolute right-0 bottom-0 opacity-10">
-                    <LucideLoader2 className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-green-500 to-green-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden" onClick={() => { setStatusFilter('Resolved'); setSearchQuery(''); }}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between relative z-10">
-                    <div>
-                      <p className="text-sm font-medium text-white">Resolved</p>
-                      <p className="text-3xl font-bold text-white mt-2">{resolvedTickets}</p>
-                    </div>
-                  </div>
-                  <div className="absolute right-0 bottom-0 opacity-10">
-                    <LucideTicketCheck className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-gray-500 to-gray-600 shadow-lg hover:shadow-xl transition-all cursor-pointer relative overflow-hidden" onClick={() => { setStatusFilter('Closed'); setSearchQuery(''); }}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between relative z-10">
-                    <div>
-                      <p className="text-sm font-medium text-white">Closed</p>
-                      <p className="text-3xl font-bold text-white mt-2">{closedTickets}</p>
-                    </div>
-                  </div>
-                  <div className="absolute right-0 bottom-0 opacity-10">
-                    <LucideAlertCircle className="h-24 w-24 text-white transform translate-x-4 translate-y-4" />
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+              <div className="flex space-x-2 items-center">
+                <Select
+                  defaultValue="10"
+                  onValueChange={handleItemsPerPageChange}
+                >
+                  {/* <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="10" />
+                  </SelectTrigger> */}
+                  {/* <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="40">40</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent> */}
+                </Select>
+                {/* <Select
+                  value={statusFilter}
+                  onValueChange={setStatusFilter}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Resolved">Resolved</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select> */}
+
+               
+                {/* <input
+                  type="search"
+                  placeholder="Search..."
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                /> */}
+
+              
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={handleRefresh}
+                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >
+                  Refresh
+                </Button>
+                <Button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Create Ticket</span>
+                </Button>
+                
+              </div>
             </div>
             {/* Tickets Table */}
             <div className="overflow-x-auto border rounded-lg">
@@ -697,184 +723,111 @@ export default function AdminDashboard() {
                               onClick={() => handleCloseTicket(ticket.TicketCode)}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </Button>
                           )}
-                          </div>
-                        </td>
-                      </tr>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-800"
+                            onClick={() => confirmDelete(ticket)}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
-                  </tbody>
-                </table>
-              </div>
-              {/* Pagination */}
-              <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-                <div className="flex items-center text-sm text-gray-500">Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries</div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</Button>
-                  {[...Array(totalPages)].map((_, index) => (
-                    <Button key={index + 1} variant={currentPage === index + 1 ? "default" : "outline"} size="sm" onClick={() => handlePageChange(index + 1)}>{index + 1}</Button>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</Button>
-                </div>
-              </div>
+                </tbody>
+              </table>
             </div>
 
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete Ticket</DialogTitle>
-                  <DialogDescription>This action cannot be undone. This will permanently delete the ticket.</DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-                  <Button variant="destructive" onClick={() => handleDelete(ticketToDelete?.TicketCode)}>Delete</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            {/* Create Ticket Modal */}
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Ticket</DialogTitle>
-                  <DialogDescription>Fill in the details below to create a new ticket.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="title">Title</Label>
-                    <Input id="title" value={newTicket.title} onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })} placeholder="Enter ticket title" />
-                  </div>
-                  <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" value={newTicket.description} onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })} placeholder="Describe your issue" rows={4} />
-                  </div>
-                  <div>
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select value={newTicket.priority} onValueChange={(value) => setNewTicket({ ...newTicket, priority: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <div className="px-4 py-3 border-t border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+              <div className="flex items-center text-sm text-gray-500 gap-4">
+                <span>
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="rowsPerPage" className="text-xs text-gray-600">Rows per page:</label>
+                  <select
+                    id="rowsPerPage"
+                    value={itemsPerPage}
+                    onChange={e => handleItemsPerPageChange(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {[10, 20, 30, 40, 50, 100].map(num => (
+                      <option key={num} value={num}>{num}</option>
+                    ))}
+                  </select>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                  <Button onClick={handleCreateTicket}>Create Ticket</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </div>
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`rounded-full border border-gray-300 bg-white shadow-sm hover:bg-blue-50 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  aria-label="Previous page"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+                {[...Array(totalPages)].map((_, index) => (
+                  <Button
+                    key={index + 1}
+                    variant={currentPage === index + 1 ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`rounded-full border ${currentPage === index + 1 ? 'bg-blue-600 text-white border-blue-600 shadow' : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'} mx-0.5 transition-colors`}
+                    aria-label={`Page ${index + 1}`}
+                  >
+                    {index + 1}
+                  </Button>
+                ))}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`rounded-full border border-gray-300 bg-white shadow-sm hover:bg-blue-50 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  aria-label="Next page"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </div>
-          <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">
-            <p>&copy; {new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
-          </div>
+
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Ticket</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete the ticket.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDelete(ticketToDelete?.TicketCode)}
+                >
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-      {/* </div> */}
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Confirm Deletion</DialogTitle>
-          </DialogHeader>
-          <DialogDescription className="text-sm text-gray-500">
-            Are you sure you want to delete this ticket? This action cannot be undone.
-          </DialogDescription>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              className="w-full sm:w-auto"
-              onClick={() => handleDelete(ticketToDelete?.TicketCode)}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Create Ticket Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Create Ticket</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <Label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                Title
-              </Label>
-              <Input
-                id="title"
-                value={newTicket.title}
-                onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
-                placeholder="Enter ticket title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                value={newTicket.description}
-                onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
-                placeholder="Enter ticket description"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="priority" className="block text-sm font-medium text-gray-700">
-                Priority
-              </Label>
-              <Select
-                id="priority"
-                value={newTicket.priority}
-                onValueChange={(value) => setNewTicket({ ...newTicket, priority: value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700"
-              onClick={handleCreateTicket}
-            >
-              Create Ticket
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>);
+        <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">
+          <p>&copy; {new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
+        </div>
+      </div>
+    </div>
+  );
 }
