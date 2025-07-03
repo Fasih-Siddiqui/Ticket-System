@@ -550,82 +550,161 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Tickets Table Section */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <div className="flex space-x-2">
-                  <Select defaultValue="10" onValueChange={handleItemsPerPageChange}>
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="10" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="30">30</SelectItem>
-                      <SelectItem value="40">40</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="Open">Open</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Resolved">Resolved</SelectItem>
-                      <SelectItem value="Closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleRefresh} className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Refresh</Button>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input type="search" placeholder="Search..." className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                  <Button onClick={() => setIsModalOpen(true)} className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Create Ticket</span>
-                  </Button>
-                </div>
-              </div>
-              <div className="overflow-x-auto border rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="w-12 px-6 py-3"><input type="checkbox" className="rounded border-gray-300" /></th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Operations</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentItems.map((ticket, index) => (
-                      <tr key={ticket.TicketID} className="hover:bg-gray-50">
-                        <td className="px-6 py-3"><input type="checkbox" className="rounded border-gray-300" /></td>
-                        <td className="px-6 py-3 text-sm">{indexOfFirstItem + index + 1}</td>
-                        <td className="px-6 py-3 text-sm text-blue-600 hover:text-blue-800"><Link href={`/tickets/${ticket.TicketCode}`}>{ticket.Title}</Link></td>
-                        <td className="px-6 py-3"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.Priority === 'High' ? 'bg-red-100 text-red-800' : ticket.Priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>{ticket.Priority}</span></td>
-                        <td className="px-6 py-3"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.Status === 'Open' ? 'bg-blue-100 text-blue-800' : ticket.Status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' : ticket.Status === 'Resolved' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{ticket.Status}</span></td>
-                        <td className="px-6 py-3 text-sm">{ticket.CreatedBy}</td>
-                        <td className="px-6 py-3 text-sm">{new Date(ticket.Date).toLocaleDateString()}</td>
-                        <td className="px-6 py-3 text-sm bg-white">
-                          <div className="flex items-center justify-end space-x-2">
-                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800" onClick={() => router.push(`/tickets/${ticket.TicketCode}`)}>
+            {/* Tickets Table */}
+            <div className="overflow-x-auto border rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="w-12 px-6 py-3">
+                      <input type="checkbox" className="rounded border-gray-300" />
+                    </th>
+                    {[
+                      { id: 'TicketID', label: 'No' },
+                      { id: 'Title', label: 'Title' },
+                      { id: 'Priority', label: 'Priority' },
+                      { id: 'Status', label: 'Status' },
+                      { id: 'CreatedBy', label: 'Created By' },
+                      { id: 'Date', label: 'Created At' }
+                    ].map((column) => (
+                      <th 
+                        key={column.id}
+                        className="px-6 py-3 font-bold"
+                      >
+                        <div className="flex flex-col items-start">
+                          <div className="flex items-center space-x-2 text-xs text-gray-500 uppercase">
+                            <span>{column.label}</span>
+                            <div className="flex items-center gap-1">
+                              <button 
+                                onClick={() => handleSort(column.id)}
+                                className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Sort"
+                              >
+                                {sortField === column.id ? (
+                                  sortDirection === 'asc' ? (
+                                    <ArrowUp className="h-3.5 w-3.5 text-blue-500" />
+                                  ) : (
+                                    <ArrowDown className="h-3.5 w-3.5 text-blue-500" />
+                                  )
+                                ) : (
+                                  <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
+                                )}
+                              </button>
+                              <button 
+                                onClick={() => handleFilter(column.id)}
+                                className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Filter"
+                              >
+                                <Filter 
+                                  className={`h-3.5 w-3.5 ${
+                                    activeFilters?.[column.id] 
+                                      ? 'text-blue-500' 
+                                      : 'text-gray-400'
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                          </div>
+                          {activeFilters[column.id] && (
+                            <input
+                              type="text"
+                              className="mt-1 px-2 py-1 border border-gray-300 rounded text-xs w-full"
+                              placeholder={`Filter ${column.label}`}
+                              value={columnFilters[column.id] || ''}
+                              onChange={e => setColumnFilters(filters => ({ ...filters, [column.id]: e.target.value }))}
+                            />
+                          )}
+                        </div>
+                      </th>
+                    ))}
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      Operations
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentItems.map((ticket, index) => (
+                    <tr key={ticket.TicketID} className="hover:bg-gray-50">
+                      <td className="px-6 py-3">
+                        <input type="checkbox" className="rounded border-gray-300" />
+                      </td>
+                      <td className="px-6 py-3 text-sm">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-6 py-3 text-sm text-blue-600 hover:text-blue-800">
+                        <Link href={`/tickets/${ticket.TicketCode}`}>
+                          {ticket.Title}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                          ${ticket.Priority === 'High' ? 'bg-red-100 text-red-800' :
+                            ticket.Priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'}`}>
+                          {ticket.Priority}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                          ${ticket.Status === 'Open' ? 'bg-blue-100 text-blue-800' :
+                            ticket.Status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                              ticket.Status === 'Resolved' ? 'bg-green-100 text-green-800' :
+                                'bg-gray-100 text-gray-800'}`}>
+                          {ticket.Status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-sm">{ticket.CreatedBy}</td>
+                      <td className="px-6 py-3 text-sm">
+                        {new Date(ticket.Date).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </td>
+                      <td className="px-6 py-3 text-sm bg-white">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Select
+                            value={ticket.AssignedTo || "unassigned"}
+                            onValueChange={(value) => handleAssignTicket(ticket.TicketCode, value)}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue placeholder="Assign to..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unassigned">Unassigned</SelectItem>
+                              {supportUsers.map((user) => (
+                                <SelectItem key={user.Username} value={user.Username}>
+                                  {user.Username}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-800"
+                            onClick={() => router.push(`/tickets/${ticket.TicketCode}`)}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </Button>
+                          {ticket.Status !== "Closed" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-600 hover:text-gray-800"
+                              onClick={() => handleCloseTicket(ticket.TicketCode)}
+                            >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                             </Button>
+                          )}
                           </div>
                         </td>
                       </tr>
-                    ))}
+                  ))}
                   </tbody>
                 </table>
               </div>
@@ -697,7 +776,7 @@ export default function AdminDashboard() {
             <p>&copy; {new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
           </div>
         </div>
-      </div>
+      {/* </div> */}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
