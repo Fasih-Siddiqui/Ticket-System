@@ -73,11 +73,7 @@ export default function EmployeeHome() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       <EmployeeSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
-      <div
-        className={`fixed top-0 left-0 z-30 w-full transition-all duration-300 h-[88px] bg-transparent`}
-      >
-        <DashboardNavbar user={userData} onLogout={handleLogout} sidebarOpen={sidebarOpen} />
-      </div>
+      <DashboardNavbar user={userData} onLogout={handleLogout} sidebarOpen={sidebarOpen} />
       {/* Mobile sidebar toggle button */}
       <button
         className="fixed top-4 left-4 z-50 p-2 rounded-md bg-blue-600 text-white shadow-lg md:hidden"

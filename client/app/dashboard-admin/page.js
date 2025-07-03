@@ -444,118 +444,187 @@ export default function AdminDashboard() {
   console.log("Current items:", currentItems);
 
   return (
-    <>
-      <ToastContainer />
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar
-          onLogout={() => {
-            localStorage.removeItem("token");
-            router.push("/");
-          }}
-          collapsed={sidebarCollapsed}
-          setCollapsed={setSidebarCollapsed}
-        />
-        <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
-          {/* Header Section */}
-          <div className={`bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 shadow-sm border-b border-gray-200`}>
-            <div className="mx-2 py-0.5">
-              <div className="grid grid-cols-3 items-center">
-                <div className="flex items-center ml-1">
-                  <Image
-                    src="/logo.png"
-                    alt="i-MSConsulting Logo"
-                    width={220}
-                    height={200}
-                    priority
-                    className="p-0 m-0"
-                  />
-                </div>
-                <div className="flex flex-col items-center justify-center">
-                  <h1 className="text-2xl font-bold text-gray-700 leading-tight font-sans tracking-tight drop-shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
-                    Welcome <span className="font-black text-gray-800">{userData?.fullname}</span>
-                  </h1>
-                </div>
-                <div className="flex justify-end"></div>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar
+        onLogout={() => {
+          localStorage.removeItem("token");
+          router.push("/");
+        }}
+        collapsed={sidebarCollapsed}
+        setCollapsed={setSidebarCollapsed}
+      />
+      <div
+        className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}
+      >
+        <div className={`bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 shadow-sm border-b border-gray-200`}>
+          <div className="mx-2 py-0.5">
+            <div className="grid grid-cols-3 items-center">
+              <div className="flex items-center ml-1">
+                <Image
+                  src="/logo.png"
+                  alt="i-MSConsulting Logo"
+                  width={220}
+                  height={200}
+                  priority
+                  className="p-0 m-0"
+                />
+              </div>
+              <div className="flex flex-col items-center justify-center">
+                <h1 className="text-2xl font-bold text-gray-700 leading-tight font-sans tracking-tight drop-shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
+                  Welcome <span className="font-black text-gray-800">{userData?.fullname}</span>
+                </h1>
+                {/* <p className="mt-1 text-base font-medium text-gray-600 font-sans tracking-normal bg-white/80 px-4 py-1 rounded-lg shadow-sm" style={{ fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif' }}>
+                  Admin Dashboard
+                </p> */}
+              </div>
+              <div className="flex justify-end">
+        
+                {/* <Button
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    router.push("/");
+                  }}
+                  className="bg-white hover:bg-gray-100 text-gray-700 font-semibold"
+                >
+                  Logout
+                </Button> */}
               </div>
             </div>
           </div>
-          {/* Main Content */}
-          <div className="flex-grow p-6">
-            {/* Ticket Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-              {/* ...cards for Total, Open, In Progress, Resolved, Closed... */}
-              {[{
-                label: 'Total Tickets', value: totalTickets, icon: LucideTicket, gradient: 'from-blue-500 to-blue-600', border: 'border-blue-500', iconBg: 'bg-blue-100', iconColor: 'text-blue-600',
-              }, {
-                label: 'Open', value: openTickets, icon: LucideTicketPlus, gradient: 'from-yellow-400 to-yellow-500', border: 'border-yellow-400', iconBg: 'bg-yellow-100', iconColor: 'text-yellow-500',
-              }, {
-                label: 'In Progress', value: inProgressTickets, icon: LucideLoader2, gradient: 'from-orange-400 to-orange-500', border: 'border-orange-400', iconBg: 'bg-orange-100', iconColor: 'text-orange-500',
-              }, {
-                label: 'Resolved', value: resolvedTickets, icon: LucideTicketCheck, gradient: 'from-green-500 to-green-600', border: 'border-green-500', iconBg: 'bg-green-100', iconColor: 'text-green-600',
-              }, {
-                label: 'Closed', value: closedTickets, icon: LucideAlertCircle, gradient: 'from-gray-400 to-gray-500', border: 'border-gray-400', iconBg: 'bg-gray-100', iconColor: 'text-gray-600',
-              }].map((card) => (
-                <Card key={card.label} className={`relative overflow-hidden border ${card.border} bg-white shadow-md group transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
-                  <div className={`absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-gradient-to-br ${card.gradient} opacity-10 z-0`} />
-                  <CardContent className="p-6 flex flex-col gap-2 z-10 relative">
-                    <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-3 ${card.iconBg} shadow-sm`}>
-                        <card.icon className={`w-7 h-7 ${card.iconColor}`} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{card.label}</p>
-                        <p className="text-3xl font-bold text-gray-800 leading-tight">{card.value}</p>
-                      </div>
+        </div>
+
+        <div className="flex-grow p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+            {/* Card data */}
+            {[
+              {
+                label: 'Total Tickets',
+                value: totalTickets,
+                icon: LucideTicket,
+                gradient: 'from-blue-500 to-blue-600',
+                border: 'border-blue-500',
+                iconBg: 'bg-blue-100',
+                iconColor: 'text-blue-600',
+              },
+              {
+                label: 'Open',
+                value: openTickets,
+                icon: LucideTicketPlus,
+                gradient: 'from-yellow-400 to-yellow-500',
+                border: 'border-yellow-400',
+                iconBg: 'bg-yellow-100',
+                iconColor: 'text-yellow-500',
+              },
+              {
+                label: 'In Progress',
+                value: inProgressTickets,
+                icon: LucideLoader2,
+                gradient: 'from-orange-400 to-orange-500',
+                border: 'border-orange-400',
+                iconBg: 'bg-orange-100',
+                iconColor: 'text-orange-500',
+              },
+              {
+                label: 'Resolved',
+                value: resolvedTickets,
+                icon: LucideTicketCheck,
+                gradient: 'from-green-500 to-green-600',
+                border: 'border-green-500',
+                iconBg: 'bg-green-100',
+                iconColor: 'text-green-600',
+              },
+              {
+                label: 'Closed',
+                value: closedTickets,
+                icon: LucideAlertCircle,
+                gradient: 'from-gray-400 to-gray-500',
+                border: 'border-gray-400',
+                iconBg: 'bg-gray-100',
+                iconColor: 'text-gray-600',
+              },
+            ].map((card, idx) => (
+              <Card
+                key={card.label}
+                className={`relative overflow-hidden border ${card.border} bg-white shadow-md group transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}
+              >
+                <div className={`absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-gradient-to-br ${card.gradient} opacity-10 z-0`} />
+                <CardContent className="p-6 flex flex-col gap-2 z-10 relative">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-full p-3 ${card.iconBg} shadow-sm`}>
+                      <card.icon className={`w-7 h-7 ${card.iconColor}`} />
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {/* Tickets Table Section */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
-                <div className="flex space-x-2 items-center">
-                  <Select defaultValue="10" onValueChange={handleItemsPerPageChange}>
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="10" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="30">30</SelectItem>
-                      <SelectItem value="40">40</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="Open">Open</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Resolved">Resolved</SelectItem>
-                      <SelectItem value="Closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleRefresh} className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Refresh</Button>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="search"
-                    placeholder="Search..."
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <Button onClick={() => setIsModalOpen(true)} className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Create Ticket</span>
-                  </Button>
-                </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{card.label}</p>
+                      <p className="text-3xl font-bold text-gray-800 leading-tight">{card.value}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+              <div className="flex space-x-2 items-center">
+                <Select
+                  defaultValue="10"
+                  onValueChange={handleItemsPerPageChange}
+                >
+                  {/* <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="10" />
+                  </SelectTrigger> */}
+                  {/* <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="40">40</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent> */}
+                </Select>
+                {/* <Select
+                  value={statusFilter}
+                  onValueChange={setStatusFilter}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Resolved">Resolved</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select> */}
+
+               
+                {/* <input
+                  type="search"
+                  placeholder="Search..."
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                /> */}
+
+              
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={handleRefresh}
+                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >
+                  Refresh
+                </Button>
+                <Button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Create Ticket</span>
+                </Button>
+                
               </div>
               <div className="overflow-x-auto border rounded-lg">
                 <table className="min-w-full divide-y divide-gray-200">
