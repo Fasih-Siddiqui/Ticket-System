@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LayoutDashboard, Ticket, User } from "lucide-react";
+import { Menu, X, LayoutDashboard, Ticket, User, LucideTicket } from "lucide-react";
 import { LucideHome } from "lucide-react";
 
 export default function EmployeeSidebar({ open, setOpen, onLogout }) {
@@ -21,29 +21,29 @@ export default function EmployeeSidebar({ open, setOpen, onLogout }) {
   const navItems = [
     {
       href: "/dashboard-employee/home",
-      label: "Home",
-      icon: <LucideHome className="w-5 h-5" />,
-    },
-    {
-      href: "/dashboard-employee",
       label: "Dashboard",
       icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
-      href: "/tickets",
-      label: "My Tickets",
-      icon: <Ticket className="w-5 h-5" />,
+      href: "/dashboard-employee",
+      label: "Ticket",
+      icon: <LucideTicket className="w-5 h-5" />,
     },
+    // {
+    //   href: "/tickets",
+    //   label: "My Tickets",
+    //   icon: <Ticket className="w-5 h-5" />,
+    // },
     {
       href: "/dashboard-employee/users",
       label: "Users",
       icon: <User className="w-5 h-5" />,
     },
-    {
-      href: "/dashboard-employee/profile",
-      label: "Profile",
-      icon: <User className="w-5 h-5" />,
-    },
+    // {
+    //   href: "/dashboard-employee/profile",
+    //   label: "Profile",
+    //   icon: <User className="w-5 h-5" />,
+    // },
   ];
 
   return (
