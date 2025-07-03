@@ -4,10 +4,35 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideUser, LucideActivity } from "lucide-react";
 import EmployeeSidebar from "@/components/EmployeeSidebar";
+import DashboardNavbar from "@/components/DashboardNavbar";
+import { useRouter } from "next/navigation";
 
 export default function EmployeeHome() {
   // Responsive sidebar state for mobile
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const router = useRouter();
+
+  // Fetch user from token if available (copy logic from dashboard page)
+  React.useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const decodedToken = JSON.parse(jsonPayload);
+        setUserData(decodedToken);
+      } catch {}
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/");
+  };
 
   // Example stats, replace with real data as needed
   const stats = [
@@ -47,8 +72,12 @@ export default function EmployeeHome() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
-      {/* Employee Sidebar - responsive */}
       <EmployeeSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+      <div
+        className={`fixed top-0 left-0 z-30 w-full transition-all duration-300 h-[88px] bg-transparent`}
+      >
+        <DashboardNavbar user={userData} onLogout={handleLogout} sidebarOpen={sidebarOpen} />
+      </div>
       {/* Mobile sidebar toggle button */}
       <button
         className="fixed top-4 left-4 z-50 p-2 rounded-md bg-blue-600 text-white shadow-lg md:hidden"
@@ -64,8 +93,8 @@ export default function EmployeeHome() {
         </svg>
       </button>
       {/* Main Content Area */}
-      <div
-        className={`flex-1 flex flex-col min-h-screen p-4 md:p-6 transition-all duration-300
+      <main
+        className={`flex-1 flex flex-col min-h-screen pt-[88px] p-4 md:p-6 transition-all duration-300 w-full
           ${sidebarOpen ? 'md:ml-60 ml-0' : 'md:ml-16 ml-0'}
         `}
       >
@@ -139,7 +168,7 @@ export default function EmployeeHome() {
             </svg>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

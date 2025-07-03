@@ -5,12 +5,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import EmployeeSidebar from "@/components/EmployeeSidebar";
 import { LucideUser, LucideUserPlus, LucideUsers, LucideUserCheck } from "lucide-react";
+import DashboardNavbar from "@/components/DashboardNavbar";
+import { useRouter } from "next/navigation";
 
 export default function UserDashboard() {
-  // Example user stats
+  // State hooks must be at the top
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
+  const router = useRouter();
+
+  // Fetch user from token if available (copy logic from dashboard page)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const decodedToken = JSON.parse(jsonPayload);
+        setUserData(decodedToken);
+      } catch {}
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/");
+  };
+
+  // Example user stats
   const stats = [
     {
       label: "Total Users",
@@ -49,6 +76,7 @@ export default function UserDashboard() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       <EmployeeSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+      <DashboardNavbar user={userData} onLogout={handleLogout} sidebarOpen={sidebarOpen} />
       {/* Mobile sidebar toggle button */}
       <button
         className="fixed top-4 left-4 z-50 p-2 rounded-md bg-blue-600 text-white shadow-lg md:hidden"
@@ -64,8 +92,8 @@ export default function UserDashboard() {
         </svg>
       </button>
       {/* Main Content Area */}
-      <div
-        className={`flex-1 flex flex-col min-h-screen p-4 md:p-6 transition-all duration-300
+      <main
+        className={`flex-1 flex flex-col min-h-screen pt-[88px] p-4 md:p-6 transition-all duration-300 w-full
           ${sidebarOpen ? 'md:ml-60 ml-0' : 'md:ml-16 ml-0'}
         `}
       >
@@ -187,7 +215,7 @@ export default function UserDashboard() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

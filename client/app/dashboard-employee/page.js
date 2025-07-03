@@ -423,7 +423,7 @@ export default function AdminDashboard() {
 
               </div>
               <div className="flex justify-end">
-                <Button
+                {/* <Button
                   onClick={() => {
                     localStorage.removeItem("token");
                     router.push("/");
@@ -431,7 +431,7 @@ export default function AdminDashboard() {
                   className="bg-white hover:bg-gray-100 text-gray-600 font-semibold"
                 >
                   Logout
-                </Button>
+                </Button> */}
               </div>
             </div>
           </div>
