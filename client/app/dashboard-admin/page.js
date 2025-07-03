@@ -435,13 +435,13 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
+    </div>
+  );
 
   console.log("Fetched data:", tickets);
   console.log("Filtered tickets:", filteredTickets);
   console.log("Current items:", currentItems);
+}
 
   return (
     <>
@@ -698,6 +698,104 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </>
-  );
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-sm text-gray-500">
+            Are you sure you want to delete this ticket? This action cannot be undone.
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              className="w-full sm:w-auto"
+              onClick={() => handleDelete(ticketToDelete?.TicketCode)}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Ticket Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Create Ticket</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <Label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                Title
+              </Label>
+              <Input
+                id="title"
+                value={newTicket.title}
+                onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                placeholder="Enter ticket title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={newTicket.description}
+                onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                placeholder="Enter ticket description"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+                Priority
+              </Label>
+              <Select
+                id="priority"
+                value={newTicket.priority}
+                onValueChange={(value) => setNewTicket({ ...newTicket, priority: value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700"
+              onClick={handleCreateTicket}
+            >
+              Create Ticket
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>);
 }
