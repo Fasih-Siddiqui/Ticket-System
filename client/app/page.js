@@ -92,34 +92,22 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-100"
-      style={{
-        backgroundImage: "url('/bg-1.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="absolute inset-0 overflow-hidden">
-        {animations.length > 0 &&
-          animations.map((animation, index) => (
-            <div
-              key={index}
-              className="absolute animate-bubble"
-              style={{ top: animation.top, left: animation.left }}
-            ></div>
-          ))}
-      </div>
-      <div className="bg-white p-8 rounded-lg shadow-md w-96 relative z-10">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Login
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 relative overflow-hidden">
+      <div className="w-full max-w-md bg-white border border-gray-200 shadow-xl rounded-2xl p-8 md:p-10 flex flex-col items-center z-10 relative animate-fade-in">
+        <img
+          src="/IMSC I - 1 - logo.png"
+          alt="Logo"
+          className="w-20 h-20 mb-2"
+        />
+        <h2 className="text-3xl font-bold text-blue-900 mb-2 mt-2 text-center tracking-tight">
+          Login to Your Account
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <p className="text-gray-500 mb-6 text-center text-base">
+          Enter your credentials to access your dashboard.
+        </p>
+        <form onSubmit={handleSubmit} className="w-full space-y-5" autoComplete="off">
           <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="username" className="block text-gray-700 font-medium mb-1">
               Username
             </label>
             <input
@@ -127,14 +115,12 @@ export default function Login() {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800 bg-gray-50"
+              placeholder="Enter your username"
             />
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block text-gray-700 font-medium mb-1">
               Password
             </label>
             <input
@@ -142,11 +128,12 @@ export default function Login() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800 bg-gray-50"
+              placeholder="Enter your password"
             />
           </div>
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4">
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 my-2 rounded">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
@@ -161,20 +148,27 @@ export default function Login() {
           )}
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 duration-300 font-semibold text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             Sign In
           </button>
         </form>
         <div className="mt-4 text-center">
+          <span className="text-gray-600 text-sm">
+            Don't have an account?{" "}
+          </span>
           <button
             onClick={handleSignupRedirect}
-            className="text-sm text-blue-600 hover:text-blue-500"
+            className="text-sm text-blue-700 hover:underline focus:outline-none font-medium"
           >
             Create an account
           </button>
         </div>
       </div>
+      <style>{`
+        @keyframes fade-in { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: none; } }
+        .animate-fade-in { animation: fade-in 1.2s cubic-bezier(0.4,0,0.2,1) both; }
+      `}</style>
     </div>
   );
 }
