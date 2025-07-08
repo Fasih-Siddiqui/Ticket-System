@@ -1,0 +1,125 @@
+$bg-color: #000;
+$base-color: #e40913;
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100vh;
+	background-color: $bg-color;
+	overflow: hidden;
+}
+
+#container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100vw;
+	height: 100vh;
+	background-color: $bg-color;
+	position: relative;
+	overflow: hidden;
+}
+
+.netflixintro {
+	position: relative;
+	width: 220px;
+	height: 220px;
+	animation: zoom-in 3s ease-in 3s forwards;
+}
+
+.n-letter {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.bar {
+	position: absolute;
+	width: 18px;
+	height: 100%;
+	background-color: $base-color;
+	box-shadow: 0 0 25px $base-color;
+}
+
+.left-bar {
+	left: 0;
+	animation: grow-bar 1s ease-in forwards;
+}
+
+.right-bar {
+	right: 0;
+	animation: grow-bar 1s ease-in 0.3s forwards;
+}
+
+.diagonal-bar {
+	left: 34%;
+	top: -5%;
+	height: 150%;
+	width: 18px;
+	transform: rotate(-23.5deg);
+	background-color: $base-color;
+	box-shadow: 0 0 30px $base-color;
+	clip-path: inset(0 100% 0 0);
+	animation: reveal-diagonal 1.2s ease-in 0.6s forwards;
+}
+
+// Animated brush stroke
+.effect-brush {
+	position: absolute;
+	width: 100%;
+	height: 300%;
+	top: 0;
+	overflow: hidden;
+	animation: brush-moving 1.8s ease-out 1.5s forwards;
+	z-index: -1;
+}
+
+.effect-brush::before {
+	display: block;
+	content: "";
+	position: absolute;
+	background-color: $base-color;
+	width: 100%;
+	height: 70%;
+	box-shadow: 0 0 50px 40px $base-color;
+}
+
+// Animations
+@keyframes grow-bar {
+	from {
+		height: 0%;
+	}
+	to {
+		height: 100%;
+	}
+}
+
+@keyframes reveal-diagonal {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
+
+@keyframes brush-moving {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(-100%);
+	}
+}
+
+@keyframes zoom-in {
+	from {
+		transform: scale(1);
+	}
+	to {
+		transform: scale(8);
+		opacity: 0;
+	}
+}
