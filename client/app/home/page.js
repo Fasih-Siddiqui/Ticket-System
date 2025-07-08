@@ -8,29 +8,58 @@ import Sidebar from "@/components/Sidebar";
 
 export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
-        {/* Top Nav Bar */}
-        <div className="bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 shadow-sm border-b border-gray-200">
-          <div className="mx-2 py-0.5">
-            <div className="grid grid-cols-3 items-center">
-              <div className="flex items-center ml-1">
-                <Image src="/logo.png" alt="i-MSConsulting Logo" width={220} height={200} priority className="p-0 m-0" />
-              </div>
-              <div className="flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-bold text-gray-700 leading-tight font-sans tracking-tight drop-shadow-sm">
-                  Dashboard Overview
-                </h1>
-              </div>
-              {/* <div className="flex items-center justify-end space-x-2">
-                <Button className="bg-white text-gray-700 font-semibold hover:bg-gray-100">Login</Button>
-                <Button className="bg-blue-600 text-white font-semibold hover:bg-blue-700">Sign Up</Button>
-              </div> */}
+        {/* Unified Topbar/Navbar */}
+        <nav className="w-full flex items-center justify-between px-3 py-2 bg-white/90 backdrop-blur-md shadow-md z-20 border-b border-blue-100 sticky top-0 left-0 right-0" style={{ minHeight: '64px' }}>
+          <div className="flex items-center gap-2">
+            {/* <Image
+              src="/IMSC I - 1 - logo.png"
+              alt="i-MSConsulting Logo"
+              width={56}
+              height={56}
+              priority
+              className=""
+              style={{ display: 'block', margin: 0, padding: 0 }}
+            /> */}
+            <div className="text-white text-xl font-bold" style={{ color: "#1d4ed8" }}>
+              PickaTicket
             </div>
+            {/* <span className="text-2xl font-bold text-blue-900 tracking-tight hidden sm:inline">i-MSConsulting</span> */}
           </div>
-        </div>
+          <div className="flex items-center gap-4">
+            {/* Search Field */}
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full max-w-xs px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800 shadow-sm"
+              style={{ minWidth: '180px' }}
+            />
+            {/* Notification Bell */}
+            <button className="relative p-2 rounded-full hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <svg className="w-7 h-7 text-blue-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 shadow">3</span>
+            </button>
+            {/* Logout Button */}
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                router.push("/");
+              }}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              Logout
+            </button>
+          </div>
+        </nav>
         {/* Main Content */}
         <div className="flex-1 px-4 py-8">
           {/* Top Stats Section */}

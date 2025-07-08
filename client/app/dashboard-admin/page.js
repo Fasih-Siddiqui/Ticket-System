@@ -387,23 +387,23 @@ export default function AdminDashboard() {
   console.log("Current items:", currentItems);
 
   const handleCreateTicket = async (e) => {
-  e.preventDefault();
-  const form = new FormData(e.target);
+    e.preventDefault();
+    const form = new FormData(e.target);
 
-  const payload = {
-    title: form.get("title"),
-    description: form.get("description"),
-    priority: form.get("priority")
+    const payload = {
+      title: form.get("title"),
+      description: form.get("description"),
+      priority: form.get("priority")
+    };
+
+    try {
+      await axios.post("/api/tickets", payload);
+      setIsModalOpen(false);
+      handleRefresh?.(); // optional refresh
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+    }
   };
-
-  try {
-    await axios.post("/api/tickets", payload);
-    setIsModalOpen(false);
-    handleRefresh?.(); // optional refresh
-  } catch (error) {
-    console.error("Error creating ticket:", error);
-  }
-};
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -421,7 +421,7 @@ export default function AdminDashboard() {
         {/* Unified Topbar/Navbar */}
         <nav className="w-full flex items-center justify-between px-3 py-2 bg-white/90 backdrop-blur-md shadow-md z-20 border-b border-blue-100 sticky top-0 left-0 right-0" style={{ minHeight: '64px' }}>
           <div className="flex items-center gap-2">
-            <Image
+            {/* <Image
               src="/IMSC I - 1 - logo.png"
               alt="i-MSConsulting Logo"
               width={56}
@@ -429,7 +429,10 @@ export default function AdminDashboard() {
               priority
               className=""
               style={{ display: 'block', margin: 0, padding: 0 }}
-            />
+            /> */}
+            <div className="text-white text-xl font-bold" style={{ color: "#1d4ed8" }}>
+              PickaTicket
+            </div>
             {/* <span className="text-2xl font-bold text-blue-900 tracking-tight hidden sm:inline">i-MSConsulting</span> */}
           </div>
           <div className="flex items-center gap-4">
@@ -692,8 +695,8 @@ export default function AdminDashboard() {
                               >
                                 <Filter
                                   className={`h-3.5 w-3.5 ${activeFilters?.[column.id]
-                                      ? 'text-blue-500'
-                                      : 'text-gray-400'
+                                    ? 'text-blue-500'
+                                    : 'text-gray-400'
                                     }`}
                                 />
                               </button>
