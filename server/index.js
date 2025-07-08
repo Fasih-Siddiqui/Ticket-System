@@ -33,6 +33,17 @@ const JWT_SECRET = "your-secret-key"; // In production, use environment variable
 const app = express();
 const PORT = process.env.PORT || 9099;
 
+import { useEffect } from 'react';
+import { NetflixIntro } from '../components/NetflixIntro';
+
+export default function Home() {
+  useEffect(() => {
+    const container = NetflixIntro();
+    document.body.appendChild(container);
+  }, []);
+
+  return null; // Since you inject directly into DOM
+}
 // CORS configuration
 app.use(cors({ 
   origin: 'http://localhost:9090',
