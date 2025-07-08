@@ -15,8 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
+import { useRouter } from 'next/navigation';
 
 export default function UsersPage() {
+  const router = useRouter();
   const [view, setView] = useState("list");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,9 +138,9 @@ export default function UsersPage() {
               </button>
               {/* Logout Button */}
               <button
-                onClick={(handleBackToList) => {
+                onClick={() => {
                   localStorage.removeItem("token");
-                  router.push("/");
+                  router.push("/users");
                 }}
                 className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
               >

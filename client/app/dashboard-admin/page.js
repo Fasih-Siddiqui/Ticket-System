@@ -74,6 +74,10 @@ export default function AdminDashboard() {
   const [columnFilters, setColumnFilters] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const [newTicket, setNewTicket] = useState({ title: '', description: '', priority: 'Low' });
+  const [creatingTicket, setCreatingTicket] = useState(false);
+  const [createError, setCreateError] = useState(null);
+
   useEffect(() => {
     if (tickets) {
       setTotalTickets(tickets.length);
@@ -388,20 +392,26 @@ export default function AdminDashboard() {
 
   const handleCreateTicket = async (e) => {
     e.preventDefault();
-    const form = new FormData(e.target);
-
+    setCreatingTicket(true);
+    setCreateError(null);
     const payload = {
-      title: form.get("title"),
-      description: form.get("description"),
-      priority: form.get("priority")
+      title: newTicket.title,
+      description: newTicket.description,
+      priority: newTicket.priority
     };
-
     try {
-      await axios.post("/api/tickets", payload);
+      const token = localStorage.getItem("token");
+      await axios.post(`${API_BASE_URL}/api/tickets`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setIsModalOpen(false);
-      handleRefresh?.(); // optional refresh
+      setNewTicket({ title: '', description: '', priority: 'Low' });
+      handleRefresh?.();
     } catch (error) {
+      setCreateError("Error creating ticket. Please try again.");
       console.error("Error creating ticket:", error);
+    } finally {
+      setCreatingTicket(false);
     }
   };
 
@@ -424,7 +434,7 @@ export default function AdminDashboard() {
             {/* <Image
               src="/IMSC I - 1 - logo.png"
               alt="i-MSConsulting Logo"
-              width={56}
+              width={50}
               height={56}
               priority
               className=""
@@ -613,6 +623,8 @@ export default function AdminDashboard() {
                           required
                           placeholder="Enter ticket title"
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                          value={newTicket.title}
+                          onChange={e => setNewTicket(t => ({ ...t, title: e.target.value }))}
                         />
                       </div>
                       <div>
@@ -622,26 +634,30 @@ export default function AdminDashboard() {
                           required
                           placeholder="Describe your issue"
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                          value={newTicket.description}
+                          onChange={e => setNewTicket(t => ({ ...t, description: e.target.value }))}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Priority</label>
                         <select
                           name="priority"
-                          defaultValue="Low"
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                          value={newTicket.priority}
+                          onChange={e => setNewTicket(t => ({ ...t, priority: e.target.value }))}
                         >
                           <option>Low</option>
                           <option>Medium</option>
                           <option>High</option>
                         </select>
                       </div>
+                      {createError && <div className="text-red-600 text-sm">{createError}</div>}
                       <div className="flex justify-end gap-2 pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                           Cancel
                         </Button>
-                        <Button type="submit" className="bg-blue-600 text-white">
-                          Create Ticket
+                        <Button type="submit" className="bg-blue-600 text-white" disabled={creatingTicket || !newTicket.title || !newTicket.description || !newTicket.priority}>
+                          {creatingTicket ? 'Creating...' : 'Create Ticket'}
                         </Button>
                       </div>
                     </form>
