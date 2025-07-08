@@ -15,16 +15,6 @@ if (result.error) {
     console.log('Loaded EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Not set');
 }
 
-import NetflixIntro from '@/components/NetflixIntro';
-
-export default function Page() {
-  return (
-    <main>
-      <NetflixIntro />
-    </main>
-  );
-}
-
 import express from "express";
 import cors from "cors";
 import mssql from "mssql";
