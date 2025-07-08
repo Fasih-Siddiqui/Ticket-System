@@ -69,9 +69,9 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
                   Users List
                 </h1>
               </div>
-              <div className="flex justify-end">
+              {/* <div className="flex justify-end">
                 <Button className="bg-blue-600 text-white hover:bg-blue-700" onClick={onCreateUser}>Add User</Button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -135,13 +135,13 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
                 Refresh
               </Button>
               <Button
-                onClick={() => setIsModalOpen(true)}
+                onClick={onCreateUser}
                 className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span>Create Ticket</span>
+                <span>Create User</span>
               </Button>
 
             </div>
