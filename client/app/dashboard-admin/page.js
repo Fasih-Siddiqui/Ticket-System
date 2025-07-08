@@ -50,6 +50,7 @@ export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
   const [supportUsers, setSupportUsers] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -85,7 +86,7 @@ export default function AdminDashboard() {
 
   const sortTickets = (tickets) => {
     if (!Array.isArray(tickets)) return [];
-    
+
     return [...tickets].sort((a, b) => {
       if (sortField) {
         let compareA = a[sortField];
@@ -385,6 +386,25 @@ export default function AdminDashboard() {
   console.log("Filtered tickets:", filteredTickets);
   console.log("Current items:", currentItems);
 
+  const handleCreateTicket = async (e) => {
+  e.preventDefault();
+  const form = new FormData(e.target);
+
+  const payload = {
+    title: form.get("title"),
+    description: form.get("description"),
+    priority: form.get("priority")
+  };
+
+  try {
+    await axios.post("/api/tickets", payload);
+    setIsModalOpen(false);
+    handleRefresh?.(); // optional refresh
+  } catch (error) {
+    console.error("Error creating ticket:", error);
+  }
+};
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar
@@ -546,7 +566,7 @@ export default function AdminDashboard() {
                   </SelectContent>
                 </Select> */}
 
-               
+
                 {/* <input
                   type="search"
                   placeholder="Search..."
@@ -555,7 +575,7 @@ export default function AdminDashboard() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 /> */}
 
-              
+
               </div>
               <div className="flex items-center space-x-2">
                 <Button
@@ -573,7 +593,57 @@ export default function AdminDashboard() {
                   </svg>
                   <span>Create Ticket</span>
                 </Button>
-                
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>Create New Ticket</DialogTitle>
+                      <p className="text-sm text-gray-500">
+                        Fill in the details below to create a new ticket.
+                      </p>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateTicket} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Title</label>
+                        <input
+                          name="title"
+                          type="text"
+                          required
+                          placeholder="Enter ticket title"
+                          className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea
+                          name="description"
+                          required
+                          placeholder="Describe your issue"
+                          className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Priority</label>
+                        <select
+                          name="priority"
+                          defaultValue="Low"
+                          className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                        >
+                          <option>Low</option>
+                          <option>Medium</option>
+                          <option>High</option>
+                        </select>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-4">
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="bg-blue-600 text-white">
+                          Create Ticket
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
             {/* Tickets Table */}
@@ -592,7 +662,7 @@ export default function AdminDashboard() {
                       { id: 'CreatedBy', label: 'Created By' },
                       { id: 'Date', label: 'Created At' }
                     ].map((column) => (
-                      <th 
+                      <th
                         key={column.id}
                         className="px-6 py-3 font-bold"
                       >
@@ -600,7 +670,7 @@ export default function AdminDashboard() {
                           <div className="flex items-center space-x-2 text-xs text-gray-500 uppercase">
                             <span>{column.label}</span>
                             <div className="flex items-center gap-1">
-                              <button 
+                              <button
                                 onClick={() => handleSort(column.id)}
                                 className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
                                 title="Sort"
@@ -615,17 +685,16 @@ export default function AdminDashboard() {
                                   <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
                                 )}
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleFilter(column.id)}
                                 className="p-1 rounded border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200"
                                 title="Filter"
                               >
-                                <Filter 
-                                  className={`h-3.5 w-3.5 ${
-                                    activeFilters?.[column.id] 
-                                      ? 'text-blue-500' 
+                                <Filter
+                                  className={`h-3.5 w-3.5 ${activeFilters?.[column.id]
+                                      ? 'text-blue-500'
                                       : 'text-gray-400'
-                                  }`}
+                                    }`}
                                 />
                               </button>
                             </div>
@@ -763,7 +832,7 @@ export default function AdminDashboard() {
                     ))}
                   </select>
                 </div>
-                </div>
+              </div>
               <div className="flex items-center space-x-1">
                 <Button
                   variant="ghost"

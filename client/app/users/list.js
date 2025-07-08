@@ -25,6 +25,10 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -41,6 +45,13 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  const handleRefresh = async () => {
+  setRefreshing(true);
+  await refreshUsers(); // aapka prop function
+  setRefreshing(false);
+};
+
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -101,11 +112,11 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>z
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full justify-end">
               <label htmlFor="rowsPerPage" className="text-xs text-gray-600">Rows per page:</label>
               <select
                 id="rowsPerPage"
@@ -117,6 +128,22 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
                   <option key={num} value={num}>{num}</option>
                 ))}
               </select>
+              <Button
+                onClick={handleRefresh}
+                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+              >
+                Refresh
+              </Button>
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Create Ticket</span>
+              </Button>
+
             </div>
           </div>
           {/* Table */}
