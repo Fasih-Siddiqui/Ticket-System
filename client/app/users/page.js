@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
-
+import { Router } from "lucide-react";
 export default function UsersPage() {
   const [view, setView] = useState("list");
   const [users, setUsers] = useState([]);
@@ -134,12 +134,9 @@ export default function UsersPage() {
                 </svg>
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 shadow">3</span>
               </button>
-              {/* Logout Button */}
+              {/* Back Button */}
               <button
-                onClick={(handleBackToList) => {
-                  localStorage.removeItem("token");
-                  router.push("/");
-                }}
+                onClick={handleBackToList}
                 className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 Back
