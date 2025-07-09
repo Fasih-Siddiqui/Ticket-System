@@ -5,7 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
+import { useRouter } from "next/navigation"; import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import axios from "axios";
+
 
 export default function UsersListPage({ onCreateUser, users: propUsers, loading: propLoading, error: propError, refreshUsers }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -28,7 +30,7 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
   const [refreshing, setRefreshing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  
+  const router = useRouter(); // <-- Add this line
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -47,10 +49,10 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const handleRefresh = async () => {
-  setRefreshing(true);
-  await refreshUsers(); // aapka prop function
-  setRefreshing(false);
-};
+    setRefreshing(true);
+    await refreshUsers(); // aapka prop function
+    setRefreshing(false);
+  };
 
 
   return (
@@ -58,7 +60,7 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
         {/* Header */}
-         {/* Unified Topbar/Navbar */}
+        {/* Unified Topbar/Navbar */}
         <nav className="w-full flex items-center justify-between px-3 py-2 bg-white/90 backdrop-blur-md shadow-md z-20 border-b border-blue-100 sticky top-0 left-0 right-0" style={{ minHeight: '64px' }}>
           <div className="flex items-center gap-2">
             {/* <Image

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
-import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity } from "lucide-react";
+import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity, Router } from "lucide-react";
 import Image from "next/image";
 import Sidebar from "@/components/Sidebar";
 
@@ -52,7 +52,7 @@ export default function Home() {
             <button
               onClick={() => {
                 localStorage.removeItem("token");
-                router.push("/");
+                Router.push("/");
               }}
               className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
@@ -113,9 +113,55 @@ export default function Home() {
               <span className="text-xs text-gray-400 font-medium">Registered users</span>
             </div>
           </div>
+           {/* Lower Section: More Analytics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* High Priority Tickets */}
+            <div className="relative bg-white border border-red-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-red-500 rounded-t-xl" />
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-base font-semibold text-gray-700">High Priority</span>
+                <span className="bg-red-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideAward className="w-7 h-7 text-red-500" />
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-red-600 mb-1">7</div>
+              <span className="text-xs text-gray-400 font-medium">Tickets marked as high</span>
+            </div>
+            {/* Support Staff */}
+            <div className="relative bg-white border border-indigo-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500 rounded-t-xl" />
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-base font-semibold text-gray-700">Support Staff</span>
+                <span className="bg-indigo-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideLink className="w-7 h-7 text-indigo-500" />
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-indigo-700 mb-1">5</div>
+              <span className="text-xs text-gray-400 font-medium">Active support users</span>
+            </div>
+            {/* Recent Activity */}
+            <div className="relative bg-white border border-fuchsia-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-fuchsia-500 rounded-t-xl" />
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-base font-semibold text-gray-700">Recent Activity</span>
+                <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center">
+                  <LucideActivity className="w-7 h-7 text-fuchsia-500" />
+                </span>
+                  
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                <svg width="80" height="32" viewBox="0 0 80 32">
+                  <polyline points="0,30 10,20 20,25 30,10 40,15 50,5 60,20 70,10 80,25" fill="none" stroke="#d946ef" strokeWidth="2" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-400 font-medium mt-2">Latest ticket updates</span>
+            </div>
+          </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6
+           mb-8">
+            
             {/* Pie Chart */}
             <div className="bg-white border border-gray-100 shadow rounded-xl p-6 flex flex-col items-center">
               <h2 className="text-lg font-bold mb-4 text-gray-700">Ticket Status Distribution</h2>
@@ -158,49 +204,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Lower Section: More Analytics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* High Priority Tickets */}
-            <div className="relative bg-white border border-red-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-red-500 rounded-t-xl" />
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-base font-semibold text-gray-700">High Priority</span>
-                <span className="bg-red-50 p-2 rounded-lg flex items-center justify-center">
-                  <LucideAward className="w-7 h-7 text-red-500" />
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-red-600 mb-1">7</div>
-              <span className="text-xs text-gray-400 font-medium">Tickets marked as high</span>
-            </div>
-            {/* Support Staff */}
-            <div className="relative bg-white border border-indigo-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500 rounded-t-xl" />
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-base font-semibold text-gray-700">Support Staff</span>
-                <span className="bg-indigo-50 p-2 rounded-lg flex items-center justify-center">
-                  <LucideLink className="w-7 h-7 text-indigo-500" />
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-indigo-700 mb-1">5</div>
-              <span className="text-xs text-gray-400 font-medium">Active support users</span>
-            </div>
-            {/* Recent Activity */}
-            <div className="relative bg-white border border-fuchsia-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-fuchsia-500 rounded-t-xl" />
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-base font-semibold text-gray-700">Recent Activity</span>
-                <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center">
-                  <LucideActivity className="w-7 h-7 text-fuchsia-500" />
-                </span>
-              </div>
-              <div className="flex-1 flex items-center justify-center">
-                <svg width="80" height="32" viewBox="0 0 80 32">
-                  <polyline points="0,30 10,20 20,25 30,10 40,15 50,5 60,20 70,10 80,25" fill="none" stroke="#d946ef" strokeWidth="2" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-400 font-medium mt-2">Latest ticket updates</span>
-            </div>
-          </div>
+         
         </div>
         {/* Footer */}
         <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">

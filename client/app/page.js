@@ -97,7 +97,7 @@ export default function Login() {
         <img
           src="/IMSC I - 1 - logo.png"
           alt="Logo"
-          className="w-20 h-20 mb-2"
+          className="w-50 h-20 mb-2"
         />
         <h2 className="text-3xl font-bold text-blue-900 mb-2 mt-2 text-center tracking-tight">
           Login to Your Account
