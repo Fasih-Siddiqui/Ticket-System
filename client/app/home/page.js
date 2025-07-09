@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
-import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity } from "lucide-react";
+import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity, Router } from "lucide-react";
 import Image from "next/image";
 import Sidebar from "@/components/Sidebar";
 
@@ -52,7 +52,7 @@ export default function Home() {
             <button
               onClick={() => {
                 localStorage.removeItem("token");
-                router.push("/");
+                Router.push("/");
               }}
               className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
