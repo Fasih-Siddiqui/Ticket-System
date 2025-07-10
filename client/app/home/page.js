@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
-import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity, Router } from "lucide-react";
+import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity, Router, User } from "lucide-react";
 import Image from "next/image";
 import Sidebar from "@/components/Sidebar";
 
@@ -29,6 +29,15 @@ export default function Home() {
             <div className="text-white text-xl font-bold" style={{ color: "#1d4ed8" }}>
               PickaTicket
             </div>
+          </div>
+          <div className="flex flex-col items-center justify-center">
+            <h1 className="text-2xl font-semibold text-gray-500">
+              Welcome Fasih uddin Siddiqui
+              Admin Dashboard
+              {User?.fullname || "User"}
+            </h1>
+          </div>
+          <div className="flex justify-end">
             {/* <span className="text-2xl font-bold text-blue-900 tracking-tight hidden sm:inline">i-MSConsulting</span> */}
           </div>
           <div className="flex items-center gap-4">
@@ -113,7 +122,7 @@ export default function Home() {
               <span className="text-xs text-gray-400 font-medium">Registered users</span>
             </div>
           </div>
-           {/* Lower Section: More Analytics */}
+          {/* Lower Section: More Analytics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* High Priority Tickets */}
             <div className="relative bg-white border border-red-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
@@ -147,7 +156,7 @@ export default function Home() {
                 <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center">
                   <LucideActivity className="w-7 h-7 text-fuchsia-500" />
                 </span>
-                  
+
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <svg width="80" height="32" viewBox="0 0 80 32">
@@ -161,7 +170,7 @@ export default function Home() {
           {/* Charts Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6
            mb-8">
-            
+
             {/* Pie Chart */}
             <div className="bg-white border border-gray-100 shadow rounded-xl p-6 flex flex-col items-center">
               <h2 className="text-lg font-bold mb-4 text-gray-700">Ticket Status Distribution</h2>
@@ -204,7 +213,7 @@ export default function Home() {
             </div>
           </div>
 
-         
+
         </div>
         {/* Footer */}
         <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">
