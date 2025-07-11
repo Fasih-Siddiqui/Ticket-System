@@ -60,8 +60,8 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
         {/* Header */}
-        {/* Unified Topbar/Navbar */}
-        <nav className="w-full flex items-center justify-between px-3 py-2 bg-white/90 backdrop-blur-md shadow-md z-20 border-b border-blue-100 sticky top-0 left-0 right-0" style={{ minHeight: '64px' }}>
+         {/* Unified Topbar/Navbar */}
+        <nav className="w-full flex items-center justify-between px-3 py-0 bg-white/90 backdrop-blur-md shadow-md z-20 border-b border-blue-100 sticky top-0 left-0 right-0" style={{ minHeight: '64px' }}>
           <div className="flex items-center gap-2">
             {/* <Image
               src="/IMSC I - 1 - logo.png"
@@ -75,7 +75,21 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
             <div className="text-white text-xl font-bold" style={{ color: "#1d4ed8" }}>
               PickaTicket
             </div>
+          </div>
+            {/* Center: Welcome Text */}
+  <div className="text-xl font-semibold text-gray-800">
+    {/* Welcome to Dashboard */}
+  {/* </div> */}
+          <div className="flex flex-col items-center justify-center ">
+            {/* <h1 className="text-2xl font-semibold text-black-500"> */}
+             <h1> Welcome
+              Fasih uddin Siddiqui
+            </h1>
+            <p class="mt-1 text-sm text-gray-400">Admin Portal</p>
+          </div>
+          <div className="flex justify-end">
             {/* <span className="text-2xl font-bold text-blue-900 tracking-tight hidden sm:inline">i-MSConsulting</span> */}
+          </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Search Field */}
