@@ -74,32 +74,32 @@ export default function Home() {
           {/* Top Stats Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Total Tickets */}
-            <div className="relative bg-white border border-blue-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-blue-500 rounded-t-xl" />
+            <div className="relative bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 border border-blue-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
+              <div className="absolute top-0 left-0 w-full h-1 bg-blue-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-base font-semibold text-gray-700">Total Tickets</span>
-                <span className="bg-blue-50 p-2 rounded-lg flex items-center justify-center">
-                  <LucideBarChart2 className="w-7 h-7 text-blue-500" />
+                <span className="text-base font-semibold text-white">Total Tickets</span>
+                <span className="bg-blue-400/30 p-2 rounded-lg flex items-center justify-center">
+                  <LucideBarChart2 className="w-7 h-7 text-white" />
                 </span>
               </div>
-              <div className="text-3xl font-bold text-blue-700 mb-1">128</div>
-              <span className="text-xs text-gray-400 font-medium">All tickets in the system</span>
+              <div className="text-3xl font-bold text-white mb-1">128</div>
+              <span className="text-xs text-blue-100 font-medium">All tickets in the system</span>
             </div>
             {/* Open Tickets */}
             <div className="relative bg-white border border-yellow-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400 rounded-t-xl" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-yellow-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-gray-700">Open Tickets</span>
                 <span className="bg-yellow-50 p-2 rounded-lg flex items-center justify-center">
                   <LucidePieChart className="w-7 h-7 text-yellow-500" />
                 </span>
               </div>
-              <div className="text-3xl font-bold text-yellow-600 mb-1">34</div>
+              <div className="text-3xl font-bold text-yellow-500 mb-1">34</div>
               <span className="text-xs text-gray-400 font-medium">Currently open</span>
             </div>
             {/* Resolved Tickets */}
             <div className="relative bg-white border border-green-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-green-500 rounded-t-xl" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-green-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-gray-700">Resolved Tickets</span>
                 <span className="bg-green-50 p-2 rounded-lg flex items-center justify-center">
@@ -111,7 +111,7 @@ export default function Home() {
             </div>
             {/* Users */}
             <div className="relative bg-white border border-cyan-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500 rounded-t-xl" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-cyan-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-gray-700">Total Users</span>
                 <span className="bg-cyan-50 p-2 rounded-lg flex items-center justify-center">
@@ -126,7 +126,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* High Priority Tickets */}
             <div className="relative bg-white border border-red-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-red-500 rounded-t-xl" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-red-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-gray-700">High Priority</span>
                 <span className="bg-red-50 p-2 rounded-lg flex items-center justify-center">
@@ -138,7 +138,7 @@ export default function Home() {
             </div>
             {/* Support Staff */}
             <div className="relative bg-white border border-indigo-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500 rounded-t-xl" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-indigo-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-gray-700">Support Staff</span>
                 <span className="bg-indigo-50 p-2 rounded-lg flex items-center justify-center">
@@ -150,7 +150,7 @@ export default function Home() {
             </div>
             {/* Recent Activity */}
             <div className="relative bg-white border border-fuchsia-100 shadow rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200">
-              <div className="absolute top-0 left-0 w-full h-1 bg-fuchsia-500 rounded-t-xl" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-fuchsia-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-gray-700">Recent Activity</span>
                 <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center">
