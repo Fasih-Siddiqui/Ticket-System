@@ -44,7 +44,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { API_BASE_URL } from "../config";
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from "@/components/Sidebar";
+
 
 export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -66,6 +70,7 @@ export default function AdminDashboard() {
   const [inProgressTickets, setInProgressTickets] = useState(0);
   const [resolvedTickets, setResolvedTickets] = useState(0);
   const [closedTickets, setClosedTickets] = useState(0);
+  const [newTicket, setNewTicket] = useState({ title: '', description: '', priority: 'Low' });
   const router = useRouter();
 
   const [sortField, setSortField] = useState(null);
@@ -386,27 +391,57 @@ export default function AdminDashboard() {
   console.log("Filtered tickets:", filteredTickets);
   console.log("Current items:", currentItems);
 
-  const handleCreateTicket = async (e) => {
-    e.preventDefault();
-    const form = new FormData(e.target);
-
-    const payload = {
-      title: form.get("title"),
-      description: form.get("description"),
-      priority: form.get("priority")
-    };
-
+  const handleCreateTicket = async () => {
+    if (!newTicket.title.trim() || !newTicket.description.trim() || !newTicket.priority.trim()) {
+      toast.error("Please fill all required fields.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
     try {
-      await axios.post("/api/tickets", payload);
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API_BASE_URL}/api/tickets`,
+        newTicket,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      await fetchTickets();
       setIsModalOpen(false);
-      handleRefresh?.(); // optional refresh
+      setNewTicket({ title: '', description: '', priority: 'Low' });
+      toast.success("Ticket created successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (error) {
+      toast.error("Failed to create ticket. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.error("Error creating ticket:", error);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <>
+      <ToastContainer />
+      <div className="flex min-h-screen bg-gray-50">
       <Sidebar
         onLogout={() => {
           localStorage.removeItem("token");
@@ -617,13 +652,13 @@ export default function AdminDashboard() {
                         Fill in the details below to create a new ticket.
                       </p>
                     </DialogHeader>
-                    <form onSubmit={handleCreateTicket} className="space-y-4">
+                    <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Title</label>
                         <input
-                          name="title"
                           type="text"
-                          required
+                          value={newTicket.title}
+                          onChange={e => setNewTicket({ ...newTicket, title: e.target.value })}
                           placeholder="Enter ticket title"
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
                         />
@@ -631,8 +666,8 @@ export default function AdminDashboard() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Description</label>
                         <textarea
-                          name="description"
-                          required
+                          value={newTicket.description}
+                          onChange={e => setNewTicket({ ...newTicket, description: e.target.value })}
                           placeholder="Describe your issue"
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
                         />
@@ -640,24 +675,24 @@ export default function AdminDashboard() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Priority</label>
                         <select
-                          name="priority"
-                          defaultValue="Low"
+                          value={newTicket.priority}
+                          onChange={e => setNewTicket({ ...newTicket, priority: e.target.value })}
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
                         >
-                          <option>Low</option>
-                          <option>Medium</option>
-                          <option>High</option>
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
                         </select>
                       </div>
                       <div className="flex justify-end gap-2 pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                           Cancel
                         </Button>
-                        <Button type="submit" className="bg-blue-600 text-white">
+                        <Button onClick={handleCreateTicket} className="bg-blue-600 text-white">
                           Create Ticket
                         </Button>
                       </div>
-                    </form>
+                    </div>
                   </DialogContent>
                 </Dialog>
               </div>
@@ -912,7 +947,8 @@ export default function AdminDashboard() {
         <div className="w-full bg-gradient-to-r from-blue-100 via-blue-400 to-gray-600 shadow-lg text-white py-2 text-center">
           <p>&copy; {new Date().getFullYear()} i-MSConsulting | All rights reserved. Designed by i-MSConsulting.</p>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

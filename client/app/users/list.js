@@ -157,7 +157,7 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>z
+                  <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,97 +1,90 @@
-import React, { useState } from "react";
+
+import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Menu, X, LayoutDashboard, Ticket, User, LucideTicket } from "lucide-react";
-import { LucideHome } from "lucide-react";
+import {
+  LucideTicket,
+  LucideUserCheck,
+  LucideLogOut,
+  LucideLayoutDashboard,
+  Menu,
+  ChevronLeft
+} from "lucide-react";
 
-export default function EmployeeSidebar({ open, setOpen, onLogout }) {
-  const router = useRouter();
-  // open and setOpen are now controlled from parent for responsiveness
+const navItems = [
+  { href: "/dashboard-employee/home", icon: LucideLayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard-employee", icon: LucideTicket, label: "Tickets" },
+  { href: "/dashboard-employee/users", icon: LucideUserCheck, label: "Users" },
+];
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    if (onLogout) {
-      onLogout();
-    } else {
-      router.push("/");
-    }
-  };
-
-  const navItems = [
-    {
-      href: "/dashboard-employee/home",
-      label: "Dashboard",
-      icon: <LayoutDashboard className="w-5 h-5" />,
-    },
-    {
-      href: "/dashboard-employee",
-      label: "Ticket",
-      icon: <LucideTicket className="w-5 h-5" />,
-    },
-    // {
-    //   href: "/tickets",
-    //   label: "My Tickets",
-    //   icon: <Ticket className="w-5 h-5" />,
-    // },
-    {
-      href: "/dashboard-employee/users",
-      label: "Users",
-      icon: <User className="w-5 h-5" />,
-    },
-    // {
-    //   href: "/dashboard-employee/profile",
-    //   label: "Profile",
-    //   icon: <User className="w-5 h-5" />,
-    // },
-  ];
-
+export default function EmployeeSidebar({ onLogout, collapsed, setCollapsed }) {
+  let currentPath = '';
+  if (typeof window !== 'undefined') {
+    currentPath = window.location.pathname;
+  }
   return (
     <aside
-      className={`fixed top-0 left-0 h-full min-h-screen bg-gradient-to-b from-blue-100 via-blue-400 to-gray-600 shadow-lg flex flex-col justify-between transition-all duration-300 z-40
-        ${open ? "w-60" : "w-16"}
-        ${open ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0
-      `}
-      style={{
-        // On mobile, overlay the sidebar
-        width: open ? 240 : 64,
-      }}
+      className={`h-full bg-gray-100 text-gray-800 shadow-sm flex flex-col fixed top-0 left-0 z-30 transition-all duration-200 border-r border-gray-300 ${collapsed ? "w-16" : "w-56"}`}
     >
-      {/* Sidebar Header with Toggle */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-blue-200">
-        <span
-          className={`text-lg font-bold text-white transition-all duration-200 ${
-            open ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-          }`}
-        >
-          Menu
-        </span>
+      <div className={`flex items-center h-16 border-b border-gray-200 bg-white/80 ${collapsed ? 'justify-center' : 'justify-end pr-4'}`}>
         <button
-          className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none md:block"
-          onClick={() => setOpen && setOpen((prev) => !prev)}
-          aria-label={open ? "Close sidebar" : "Open sidebar"}
+          onClick={() => setCollapsed((prev) => !prev)}
+          className="p-2 rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {collapsed ? <Menu className="w-6 h-6 text-blue-500" /> : <ChevronLeft className="w-6 h-6 text-blue-500" />}
         </button>
       </div>
       {/* Navigation */}
-      <nav className="flex-1 flex flex-col gap-2 px-2 pt-6">
-        {navItems.map((item) => (
-          <Link href={item.href} passHref legacyBehavior key={item.href}>
-            <a className={`flex items-center gap-3 py-2 px-2 rounded-md text-white hover:bg-blue-500 transition-all ${open ? "justify-start" : "justify-center"}`}>
-              {item.icon}
-              <span className={`transition-all duration-200 ${open ? "opacity-100 ml-2" : "opacity-0 w-0 overflow-hidden"}`}>{item.label}</span>
-            </a>
-          </Link>
-        ))}
+      <nav className="flex-1 py-6 px-0 space-y-1">
+        {navItems.map(({ href, icon: Icon, label }) => {
+          const isActive = currentPath === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center gap-0 md:gap-3 pl-4 pr-2 py-2 rounded-lg transition-all group font-medium text-base ${collapsed ? 'justify-center pl-0 pr-0' : 'justify-start'} ${isActive ? 'bg-white/90 text-blue-700 shadow-inner' : 'hover:bg-white/70 hover:text-blue-700'}`}
+              style={{ minHeight: 44 }}
+            >
+              <span className="flex items-center justify-center w-12 h-12">
+                <Icon className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-400'} group-hover:text-blue-700 transition-colors block flex-shrink-0 leading-none align-middle`} />
+              </span>
+              <span
+                className={`ml-1 text-[15px] font-semibold transition-all duration-200 overflow-hidden whitespace-nowrap ${isActive ? 'text-blue-700' : 'text-gray-400'} group-hover:text-blue-700 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+                style={{ maxWidth: collapsed ? 0 : 140 }}
+              >
+                {label}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
-      {/* Logout Button */}
-      <div className="px-2 py-6">
-        <Button onClick={handleLogout} className={`w-full bg-white text-gray-700 font-semibold hover:bg-gray-100 flex items-center justify-center gap-2 ${open ? "px-4" : "px-2"}`}>
-          <X className="w-5 h-5" />
-          <span className={`transition-all duration-200 ${open ? "opacity-100 ml-2" : "opacity-0 w-0 overflow-hidden"}`}>Logout</span>
-        </Button>
+      {/* Logout */}
+      <div className="p-2 border-t border-gray-200 bg-white/80">
+        <button
+          onClick={() => {
+            if (typeof onLogout === 'function') {
+              onLogout();
+            } else {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('token');
+                window.location.href = '/';
+              }
+            }
+          }}
+          className="flex items-center gap-2 w-full px-2 py-2 rounded-lg transition-all text-left font-semibold bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          style={{ minHeight: 44 }}
+        >
+          <span className="flex items-center justify-center w-10 h-10">
+            <LucideLogOut className="w-6 h-6 text-white" />
+          </span>
+          <span
+            className={`transition-all duration-200 overflow-hidden whitespace-nowrap ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+            style={{ maxWidth: collapsed ? 0 : 140 }}
+          >
+            Logout
+          </span>
+        </button>
       </div>
     </aside>
   );
