@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LucideTicket,
   LucideUserCheck,
@@ -19,10 +20,14 @@ const navItems = [
 
 export default function Sidebar({ onLogout, collapsed, setCollapsed }) {
   // Get current path for active link highlight
-  let currentPath = '';
-  if (typeof window !== 'undefined') {
-    currentPath = window.location.pathname;
-  }
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentPath = pathname;
+  const path = usePathname();
+
+  useEffect(() => {
+    setCollapsed(true);
+  }, [path, setCollapsed]);
+
   return (
     <aside
       className={`h-full bg-gray-100 text-gray-800 shadow-sm flex flex-col fixed top-0 left-0 z-30 transition-all duration-200 border-r border-gray-300 ${collapsed ? "w-16" : "w-56"}`}
@@ -45,11 +50,11 @@ export default function Sidebar({ onLogout, collapsed, setCollapsed }) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-0 md:gap-3 pl-4 pr-2 py-2 rounded-lg transition-all group font-medium text-base ${collapsed ? 'justify-center pl-0 pr-0' : 'justify-start'} ${isActive ? 'bg-white/90 text-blue-700 shadow-inner' : 'hover:bg-white/70 hover:text-blue-700'}`}
+              className={`flex items-center gap-0 md:gap-3 pl-4 pr-2 py-2 rounded-lg transition-all duration-200 group font-medium text-base ${collapsed ? 'justify-center pl-0 pr-0' : 'justify-start'} ${isActive ? 'bg-white/90 text-blue-700 shadow-inner' : 'hover:bg-white/70 hover:text-blue-700'} transition-colors duration-300`}
               style={{ minHeight: 44 }}
             >
-              <span className="flex items-center justify-center w-12 h-12">
-                <Icon className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-400'} group-hover:text-blue-700 transition-colors block flex-shrink-0 leading-none align-middle`} />
+              <span className="flex items-center justify-center w-12 h-12 transition-colors duration-300">
+                <Icon className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-400'} group-hover:text-blue-700 transition-colors duration-300 block flex-shrink-0 leading-none align-middle`} />
               </span>
               <span
                 className={`ml-1 text-[15px] font-semibold transition-all duration-200 overflow-hidden whitespace-nowrap ${isActive ? 'text-blue-700' : 'text-gray-400'} group-hover:text-blue-700 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}

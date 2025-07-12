@@ -81,16 +81,25 @@ export default function Home() {
           {/* Top Stats Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Total Tickets */}
-            <div className="relative shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-xl transition-all duration-200 overflow-hidden"
+            <div
+              className="relative group shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:scale-105 hover:shadow-xl hover:shadow-gray-400/40 transition-all duration-200 overflow-hidden cursor-pointer"
               style={{
                 background: 'white',
                 border: '1px solid #bfdbfe',
+                transition: 'background 0.3s',
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #bfdbfe 0%, #3b82f6 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
             >
+              {/* Large faint icon, only on hover */}
+              <div className="absolute right-2 bottom-2 pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-50 group-hover:scale-110" style={{zIndex: 0}}>
+                <LucideBarChart2 className="w-32 h-32 text-blue-200" />
+              </div>
               <div className="absolute top-0 left-0 w-full h-1 bg-blue-400 rounded-t-2xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-blue-900">Total Tickets</span>
-                <span className="bg-blue-100 p-2 rounded-lg flex items-center justify-center">
+                {/* Main icon, hidden on hover */}
+                <span className="bg-blue-100 p-2 rounded-lg flex items-center justify-center group-hover:hidden">
                   <LucideBarChart2 className="w-7 h-7 text-blue-600" />
                 </span>
               </div>
@@ -98,16 +107,25 @@ export default function Home() {
               <span className="text-xs text-blue-700 font-medium">All tickets in the system</span>
             </div>
             {/* Open Tickets */}
-            <div className="relative shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-xl transition-all duration-200 overflow-hidden"
+            <div
+              className="relative group shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:scale-105 hover:shadow-xl hover:shadow-gray-400/40 transition-all duration-200 overflow-hidden cursor-pointer"
               style={{
                 background: 'white',
                 border: '1px solid #fde68a',
+                transition: 'background 0.3s',
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #fde68a 0%, #facc15 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
             >
+              {/* Large faint icon, only on hover */}
+              <div className="absolute right-2 bottom-2 pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-50 group-hover:scale-110" style={{zIndex: 0}}>
+                <LucidePieChart className="w-32 h-32 text-yellow-100" />
+              </div>
               <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400 rounded-t-2xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-yellow-900">Open Tickets</span>
-                <span className="bg-yellow-100 p-2 rounded-lg flex items-center justify-center">
+                {/* Main icon, hidden on hover */}
+                <span className="bg-yellow-100 p-2 rounded-lg flex items-center justify-center group-hover:hidden">
                   <LucidePieChart className="w-7 h-7 text-yellow-500" />
                 </span>
               </div>
@@ -115,16 +133,25 @@ export default function Home() {
               <span className="text-xs text-yellow-700 font-medium">Currently open</span>
             </div>
             {/* Resolved Tickets */}
-            <div className="relative shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-xl transition-all duration-200 overflow-hidden"
+            <div
+              className="relative group shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:scale-105 hover:shadow-xl hover:shadow-gray-400/40 transition-all duration-200 overflow-hidden cursor-pointer"
               style={{
                 background: 'white',
                 border: '1px solid #6ee7b7',
+                transition: 'background 0.3s',
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #6ee7b7 0%, #22c55e 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
             >
+              {/* Large faint icon, only on hover */}
+              <div className="absolute right-2 bottom-2 pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-50 group-hover:scale-110" style={{zIndex: 0}}>
+                <LucideTrendingUp className="w-32 h-32 text-green-300" />
+              </div>
               <div className="absolute top-0 left-0 w-full h-1 bg-green-400 rounded-t-2xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-green-900">Resolved Tickets</span>
-                <span className="bg-green-100 p-2 rounded-lg flex items-center justify-center">
+                {/* Main icon, hidden on hover */}
+                <span className="bg-green-100 p-2 rounded-lg flex items-center justify-center group-hover:hidden">
                   <LucideTrendingUp className="w-7 h-7 text-green-500" />
                 </span>
               </div>
@@ -132,16 +159,25 @@ export default function Home() {
               <span className="text-xs text-green-700 font-medium">Marked as resolved</span>
             </div>
             {/* Users */}
-            <div className="relative shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-xl transition-all duration-200 overflow-hidden"
+            <div
+              className="relative group shadow-lg rounded-2xl p-6 flex flex-col justify-between min-h-[140px] hover:scale-105 hover:shadow-xl hover:shadow-gray-400/40 transition-all duration-200 overflow-hidden cursor-pointer"
               style={{
                 background: 'white',
                 border: '1px solid #67e8f9',
+                transition: 'background 0.3s',
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #67e8f9 0%, #06b6d4 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
             >
+              {/* Large faint icon, only on hover */}
+              <div className="absolute right-2 bottom-2 pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-50 group-hover:scale-110" style={{zIndex: 0}}>
+                <LucideSearch className="w-32 h-32 text-cyan-300" />
+              </div>
               <div className="absolute top-0 left-0 w-full h-1 bg-cyan-400 rounded-t-2xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-cyan-900">Total Users</span>
-                <span className="bg-cyan-100 p-2 rounded-lg flex items-center justify-center">
+                {/* Main icon, hidden on hover */}
+                <span className="bg-cyan-100 p-2 rounded-lg flex items-center justify-center group-hover:hidden">
                   <LucideSearch className="w-7 h-7 text-cyan-500" />
                 </span>
               </div>
@@ -152,29 +188,25 @@ export default function Home() {
           {/* Lower Section: More Analytics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* High Priority Tickets */}
-            <div className="relative shadow-lg rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200 overflow-hidden"
+            <div
+              className="relative group shadow-lg rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:scale-105 hover:shadow-xl hover:shadow-gray-400/40 transition-all duration-200 overflow-hidden cursor-pointer"
               style={{
                 background: 'white',
                 border: '1px solid #fecaca',
+                transition: 'background 0.3s',
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #fecaca 0%, #ef4444 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
             >
-              {/* Pattern overlay: LucideAward icon as a light pattern */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10" width="100%" height="100%" viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="icon-award" width="48" height="48" patternUnits="userSpaceOnUse">
-                    <g opacity="0.12">
-                      <rect x="0" y="0" width="48" height="48" fill="none" />
-                      <circle cx="24" cy="20" r="10" stroke="#ef4444" strokeWidth="3" fill="#fee2e2" />
-                      <rect x="20" y="32" width="8" height="12" rx="2" fill="#ef4444" />
-                    </g>
-                  </pattern>
-                </defs>
-                <rect width="200" height="140" fill="url(#icon-award)" />
-              </svg>
+              {/* Large faint icon, only on hover */}
+              <div className="absolute right-2 bottom-2 pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-50 group-hover:scale-110" style={{zIndex: 0}}>
+                <LucideAward className="w-32 h-32 text-red-300" />
+              </div>
               <div className="absolute top-0 left-0 w-full h-1 bg-red-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-red-900">High Priority</span>
-                <span className="bg-red-50 p-2 rounded-lg flex items-center justify-center">
+                {/* Main icon, hidden on hover */}
+                <span className="bg-red-50 p-2 rounded-lg flex items-center justify-center group-hover:hidden">
                   <LucideAward className="w-7 h-7 text-red-500" />
                 </span>
               </div>
@@ -182,29 +214,25 @@ export default function Home() {
               <span className="text-xs text-red-700 font-medium">Tickets marked as high</span>
             </div>
             {/* Support Staff */}
-            <div className="relative shadow-lg rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200 overflow-hidden"
+            <div
+              className="relative group shadow-lg rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:scale-105 hover:shadow-xl hover:shadow-gray-400/40 transition-all duration-200 overflow-hidden cursor-pointer"
               style={{
                 background: 'white',
                 border: '1px solid #c7d2fe',
+                transition: 'background 0.3s',
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #c7d2fe 0%, #6366f1 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
             >
-              {/* Pattern overlay: LucideLink icon as a light pattern */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10" width="100%" height="100%" viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="icon-link" width="48" height="48" patternUnits="userSpaceOnUse">
-                    <g opacity="0.12">
-                      <rect x="0" y="0" width="48" height="48" fill="none" />
-                      <rect x="10" y="22" width="28" height="4" rx="2" fill="#6366f1" />
-                      <rect x="22" y="10" width="4" height="28" rx="2" fill="#6366f1" />
-                    </g>
-                  </pattern>
-                </defs>
-                <rect width="200" height="140" fill="url(#icon-link)" />
-              </svg>
+              {/* Large faint icon, only on hover */}
+              <div className="absolute right-2 bottom-2 pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-50 group-hover:scale-110" style={{zIndex: 0}}>
+                <LucideLink className="w-32 h-32 text-indigo-300" />
+              </div>
               <div className="absolute top-0 left-0 w-full h-1 bg-indigo-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-indigo-900">Support Staff</span>
-                <span className="bg-indigo-50 p-2 rounded-lg flex items-center justify-center">
+                {/* Main icon, hidden on hover */}
+                <span className="bg-indigo-50 p-2 rounded-lg flex items-center justify-center group-hover:hidden">
                   <LucideLink className="w-7 h-7 text-indigo-500" />
                 </span>
               </div>
@@ -212,35 +240,27 @@ export default function Home() {
               <span className="text-xs text-indigo-700 font-medium">Active support users</span>
             </div>
             {/* Recent Activity */}
-            <div className="relative shadow-lg rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:shadow-lg transition-all duration-200 overflow-hidden"
+            <div
+              className="relative group shadow-lg rounded-xl p-6 flex flex-col justify-between min-h-[140px] hover:scale-105 hover:shadow-xl hover:shadow-gray-400/40 transition-all duration-200 overflow-hidden cursor-pointer"
               style={{
                 background: 'white',
                 border: '1px solid #f0abfc',
+                transition: 'background 0.3s',
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #f0abfc 0%, #d946ef 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
             >
-              {/* Pattern overlay: LucideActivity icon as a light pattern */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10" width="100%" height="100%" viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="icon-activity" width="48" height="48" patternUnits="userSpaceOnUse">
-                    <g opacity="0.12">
-                      <rect x="0" y="0" width="48" height="48" fill="none" />
-                      <polyline points="4,44 16,32 24,40 44,8" stroke="#d946ef" strokeWidth="4" fill="none" />
-                      <circle cx="4" cy="44" r="2.5" fill="#d946ef" />
-                      <circle cx="16" cy="32" r="2.5" fill="#d946ef" />
-                      <circle cx="24" cy="40" r="2.5" fill="#d946ef" />
-                      <circle cx="44" cy="8" r="2.5" fill="#d946ef" />
-                    </g>
-                  </pattern>
-                </defs>
-                <rect width="200" height="140" fill="url(#icon-activity)" />
-              </svg>
+              {/* Large faint icon, only on hover */}
+              <div className="absolute right-2 bottom-2 pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-50 group-hover:scale-110" style={{zIndex: 0}}>
+                <LucideActivity className="w-32 h-32 text-fuchsia-300" />
+              </div>
               <div className="absolute top-0 left-0 w-full h-1 bg-fuchsia-300 rounded-t-xl" />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-fuchsia-900">Recent Activity</span>
-                <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center">
+                {/* Main icon, hidden on hover */}
+                <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center group-hover:hidden">
                   <LucideActivity className="w-7 h-7 text-fuchsia-500" />
                 </span>
-
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <svg width="80" height="32" viewBox="0 0 80 32">
