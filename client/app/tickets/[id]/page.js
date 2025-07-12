@@ -240,11 +240,11 @@ const TicketDetails = ({ params }) => {
 
   const handleBackClick = () => {
     if (userData?.role === 'admin') {
-      router.push('/dashboard-admin');
+      router.push('/admin-DB');
     } else if (userData?.role === 'support') {
       router.push('/dashboard-support');
     } else {
-      router.push('/dashboard-employee');
+      router.push('/employee-DB');
     }
   };
 
