@@ -79,6 +79,10 @@ export default function AdminDashboard() {
   const [columnFilters, setColumnFilters] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+
+  const [creatingTicket, setCreatingTicket] = useState(false);
+  const [createError, setCreateError] = useState(null);
+
   useEffect(() => {
     if (tickets) {
       setTotalTickets(tickets.length);
@@ -435,6 +439,8 @@ export default function AdminDashboard() {
         draggable: true,
       });
       console.error("Error creating ticket:", error);
+    } finally {
+      setCreatingTicket(false);
     }
   };
 
@@ -459,7 +465,7 @@ export default function AdminDashboard() {
             {/* <Image
               src="/IMSC I - 1 - logo.png"
               alt="i-MSConsulting Logo"
-              width={56}
+              width={50}
               height={56}
               priority
               className=""
@@ -661,6 +667,8 @@ export default function AdminDashboard() {
                           onChange={e => setNewTicket({ ...newTicket, title: e.target.value })}
                           placeholder="Enter ticket title"
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                          // value={newTicket.title}
+                          // onChange={e => setNewTicket(t => ({ ...t, title: e.target.value }))}
                         />
                       </div>
                       <div>
@@ -670,6 +678,8 @@ export default function AdminDashboard() {
                           onChange={e => setNewTicket({ ...newTicket, description: e.target.value })}
                           placeholder="Describe your issue"
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                          // value={newTicket.description}
+                          // onChange={e => setNewTicket(t => ({ ...t, description: e.target.value }))}
                         />
                       </div>
                       <div>
@@ -678,12 +688,15 @@ export default function AdminDashboard() {
                           value={newTicket.priority}
                           onChange={e => setNewTicket({ ...newTicket, priority: e.target.value })}
                           className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1"
+                          // value={newTicket.priority}
+                          // onChange={e => setNewTicket(t => ({ ...t, priority: e.target.value }))}
                         >
                           <option value="Low">Low</option>
                           <option value="Medium">Medium</option>
                           <option value="High">High</option>
                         </select>
                       </div>
+                      {createError && <div className="text-red-600 text-sm">{createError}</div>}
                       <div className="flex justify-end gap-2 pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                           Cancel

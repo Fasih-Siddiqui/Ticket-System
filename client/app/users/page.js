@@ -16,7 +16,9 @@ import {
 } from "@/components/ui/select";
 import axios from "axios";
 import { Router } from "lucide-react";
+import { useRouter } from 'next/navigation';
 export default function UsersPage() {
+  const router = useRouter();
   const [view, setView] = useState("list");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);

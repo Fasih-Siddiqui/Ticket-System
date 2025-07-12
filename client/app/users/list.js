@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import axios from "axios";
+import TableHeader from "@/components/TableHeader";
+import { ArrowUp, ArrowDown, ArrowUpDown, Filter } from 'lucide-react';
 
 
 export default function UsersListPage({ onCreateUser, users: propUsers, loading: propLoading, error: propError, refreshUsers }) {
@@ -29,9 +31,29 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
   const [statusFilter, setStatusFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [activeFilters, setActiveFilters] = useState({});
+  const [columnFilters, setColumnFilters] = useState({});
 
   const router = useRouter(); // <-- Add this line
 
+  // Sorting logic
+  const handleSort = (field) => {
+    const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortDirection(newDirection);
+  };
+
+  // Filtering logic
+  const handleFilter = (field) => {
+    setActiveFilters((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+  const handleColumnFilterChange = (field, value) => {
+    setColumnFilters((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Apply sorting and filtering to users
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       searchQuery === "" ||
@@ -40,13 +62,28 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
       (user.firstName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
       (user.lastName?.toLowerCase() || "").includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || user.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    // Column filters
+    const matchesColumnFilters = Object.entries(columnFilters).every(([field, value]) => {
+      if (!value) return true;
+      const userValue = (user[field] || '').toString().toLowerCase();
+      return userValue.includes(value.toLowerCase());
+    });
+    return matchesSearch && matchesStatus && matchesColumnFilters;
+  });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sortField) return 0;
+    let compareA = a[sortField];
+    let compareB = b[sortField];
+    if (compareA < compareB) return sortDirection === 'asc' ? -1 : 1;
+    if (compareA > compareB) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
   });
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const currentItems = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -162,17 +199,7 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
               </Select>
             </div>
             <div className="flex items-center gap-2 w-full justify-end">
-              <label htmlFor="rowsPerPage" className="text-xs text-gray-600">Rows per page:</label>
-              <select
-                id="rowsPerPage"
-                value={itemsPerPage}
-                onChange={e => setItemsPerPage(Number(e.target.value))}
-                className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {[10, 20, 30, 40, 50, 100].map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
-              </select>
+              
               <Button
                 onClick={handleRefresh}
                 className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
@@ -194,21 +221,26 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
           {/* Table */}
           <div className="overflow-x-auto border rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="w-12 px-6 py-3">
-                    <input type="checkbox" className="rounded border-gray-300" />
-                  </th>
-                  <th className="px-6 py-3 font-bold">#</th>
-                  <th className="px-6 py-3 font-bold">First Name</th>
-                  <th className="px-6 py-3 font-bold">Last Name</th>
-                  <th className="px-6 py-3 font-bold">Username</th>
-                  <th className="px-6 py-3 font-bold">Email</th>
-                  <th className="px-6 py-3 font-bold">Role</th>
-                  <th className="px-6 py-3 font-bold">Status</th>
-                  <th className="px-6 py-3 font-bold">Actions</th>
-                </tr>
-              </thead>
+              <TableHeader
+                showCheckbox={true}
+                columns={[
+                  { id: 'number', label: '#' },
+                  { id: 'firstName', label: 'First Name' },
+                  { id: 'lastName', label: 'Last Name' },
+                  { id: 'username', label: 'Username' },
+                  { id: 'email', label: 'Email' },
+                  { id: 'role', label: 'Role' },
+                  { id: 'status', label: 'Status' },
+                ]}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                activeFilters={activeFilters}
+                onFilter={handleFilter}
+                columnFilters={columnFilters}
+                onColumnFilterChange={handleColumnFilterChange}
+                operationsLabel="Actions"
+              />
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
@@ -252,8 +284,19 @@ export default function UsersListPage({ onCreateUser, users: propUsers, loading:
           <div className="px-4 py-3 border-t border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
             <div className="flex items-center text-sm text-gray-500 gap-4">
               <span>
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredUsers.length)} of {filteredUsers.length} entries
+                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, sortedUsers.length)} of {sortedUsers.length} entries
               </span>
+              <label htmlFor="rowsPerPage" className="text-xs text-gray-600">Rows per page:</label>
+              <select
+                id="rowsPerPage"
+                value={itemsPerPage}
+                onChange={e => setItemsPerPage(Number(e.target.value))}
+                className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {[10, 20, 30, 40, 50, 100].map(num => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center space-x-1">
               <Button
