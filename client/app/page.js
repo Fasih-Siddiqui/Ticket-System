@@ -72,11 +72,11 @@ export default function Login() {
 
       // Redirect based on role
       if (role === "admin") {
-        router.push("home");
+        router.push("/admin-DB");
       } else if (role === "support") {
         router.push("/dashboard-support");
       } else if (role === "user") {
-        router.push("/dashboard-employee");
+        router.push("/employee-DB");
       } else {
         console.log("Unknown role:", role);
         setError("Invalid user role");

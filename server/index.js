@@ -122,26 +122,10 @@ app.use(cookieParser());
 // Rafii config
 
 
-// const config = {
-//   user: "sa",
-//   password: "1211",
-//   server: "DESKTOP-SGEVEOQ",
-//   database: "TicketSystem",
-//   port: 1433,
-//   options: { encrypt: false },
-//   pool: {
-//     max: 10,
-//     min: 0,
-//     idleTimeoutMillis: 15000,
-//   },
-// };
-
-// Abdur Rauff Config
-
 const config = {
   user: "sa",
-  password: "sap123",
-  server: "DESKTOP-4RSGI35",
+  password: "1211",
+  server: "DESKTOP-SGEVEOQ",
   database: "TicketSystem",
   port: 1433,
   options: { encrypt: false },
@@ -151,6 +135,22 @@ const config = {
     idleTimeoutMillis: 15000,
   },
 };
+
+// Abdur Rauff Config
+
+// const config = {
+//   user: "sa",
+//   password: "sap123",
+//   server: "DESKTOP-4RSGI35",
+//   database: "TicketSystem",
+//   port: 1433,
+//   options: { encrypt: false },
+//   pool: {
+//     max: 10,
+//     min: 0,
+//     idleTimeoutMillis: 15000,
+//   },
+// };
 
 
 const pool = new mssql.ConnectionPool(config);

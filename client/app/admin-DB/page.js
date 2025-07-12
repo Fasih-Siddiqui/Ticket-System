@@ -1,19 +1,20 @@
-
 "use client";
 
 import React, { useState } from "react";
-import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity } from "lucide-react";
-import EmployeeSidebar from "@/components/EmployeeSidebar";
+import { Button } from "../../components/ui/button";
+import { LucideBarChart2, LucidePieChart, LucideTrendingUp, LucideLink, LucideSearch, LucideAward, LucideActivity, Router, User } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Sidebar from "@/components/Sidebar";
 
-export default function EmployeeHome() {
+export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <EmployeeSidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+      <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       <div className={`flex-1 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "ml-16" : "ml-56"}`}>
         {/* Unified Topbar/Navbar */}
         <nav className="w-full flex items-center justify-between px-3 py-0 bg-white/90 backdrop-blur-md shadow-md z-20 border-b border-blue-100 sticky top-0 left-0 right-0" style={{ minHeight: '64px' }}>
@@ -31,11 +32,20 @@ export default function EmployeeHome() {
               PickaTicket
             </div>
           </div>
+            {/* Center: Welcome Text */}
+  <div className="text-xl font-semibold text-gray-800">
+    {/* Welcome to Dashboard */}
+  {/* </div> */}
           <div className="flex flex-col items-center justify-center ">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              Welcome Employee
+            {/* <h1 className="text-2xl font-semibold text-black-500"> */}
+             <h1> Welcome
+              Fasih uddin Siddiqui
             </h1>
-            <p className="mt-1 text-sm text-gray-400">Employee Portal</p>
+            <p class="mt-1 text-sm text-gray-400">Admin Portal</p>
+          </div>
+          <div className="flex justify-end">
+            {/* <span className="text-2xl font-bold text-blue-900 tracking-tight hidden sm:inline">i-MSConsulting</span> */}
+          </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Search Field */}
@@ -230,6 +240,7 @@ export default function EmployeeHome() {
                 <span className="bg-fuchsia-50 p-2 rounded-lg flex items-center justify-center">
                   <LucideActivity className="w-7 h-7 text-fuchsia-500" />
                 </span>
+
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <svg width="80" height="32" viewBox="0 0 80 32">
@@ -239,8 +250,11 @@ export default function EmployeeHome() {
               <span className="text-xs text-fuchsia-700 font-medium mt-2">Latest ticket updates</span>
             </div>
           </div>
+
           {/* Charts Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6
+           mb-8">
+
             {/* Pie Chart */}
             <div className="relative shadow-lg rounded-xl p-6 flex flex-col items-center overflow-hidden"
               style={{
@@ -318,6 +332,7 @@ export default function EmployeeHome() {
               </div>
             </div>
           </div>
+
 
         </div>
         {/* Footer */}

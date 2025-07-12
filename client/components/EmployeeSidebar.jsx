@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard-employee/home", icon: LucideLayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard-employee", icon: LucideTicket, label: "Tickets" },
-  { href: "/dashboard-employee/users", icon: LucideUserCheck, label: "Users" },
+  { href: "/employee-DB", icon: LucideLayoutDashboard, label: "Dashboard" },
+  { href: "/employee-ticket", icon: LucideTicket, label: "Tickets" },
+  { href: "/employee-users", icon: LucideUserCheck, label: "Users" },
 ];
 
 export default function EmployeeSidebar({ onLogout, collapsed, setCollapsed }) {
